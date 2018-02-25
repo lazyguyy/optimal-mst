@@ -1,4 +1,4 @@
-package util;
+package util.queue;
 
 public class FibonacciHeap<T> implements SoftPriorityQueue<T> {
 
@@ -7,17 +7,27 @@ public class FibonacciHeap<T> implements SoftPriorityQueue<T> {
     }
 
     @Override
-    public T extract() {
+    public T pop() {
         return null;
     }
 
     @Override
-    public void insert(T value) {
+    public T peek() {
+        return null;
+    }
 
+    @Override
+    public boolean insertLossy(T value) {
+        return false;
     }
 
     @Override
     public void delete(T value) {
 
+    }
+
+    @Override
+    public int size() {
+        return 0;
     }
 }

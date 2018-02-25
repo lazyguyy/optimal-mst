@@ -1,25 +1,35 @@
-package util;
+package util.queue;
 
 import java.util.*;
 
-public class KAryHeap<T extends Comparable<? super T>> implements ExtendedPriorityQueue<T> {
+public class KAryHeap<T> implements ExtendedPriorityQueue<T> {
 
     private final List<T> tree;
     private final Map<T, Integer> elementIndex;
+    private final Comparator<? super T> comparator;
     public final int K;
 
-    public KAryHeap(final int k) {
-        this(k, new ArrayList<>(), new HashMap<>());
+    public KAryHeap(final int k, final Comparator<? super T> c) {
+        this(k, c, new ArrayList<>(), new HashMap<>());
     }
 
-    private KAryHeap(final int k, final List<T> baseList, final Map<T, Integer> baseMap) {
+    private KAryHeap(final int k, final Comparator<? super T> c, final List<T> baseList, final Map<T, Integer> baseMap) {
         if (k <= 0)
             throw new IllegalArgumentException("K must be positive.");
         baseList.clear();
         baseMap.clear();
         K = k;
+        comparator = c;
         tree = baseList;
         elementIndex = baseMap;
+    }
+
+    public static <S extends Comparable<? super S>> KAryHeap<S> naturallyOrdered(final int k) {
+        return new KAryHeap<>(k, S::compareTo);
+    }
+
+    public int size() {
+        return tree.size();
     }
 
     private T get(final int index) {
@@ -42,10 +52,6 @@ public class KAryHeap<T extends Comparable<? super T>> implements ExtendedPriori
         return element;
     }
 
-    private int size() {
-        return tree.size();
-    }
-
     private void swap(final int i, final int j) {
         final T temp = get(i);
         emplace(i, get(j));
@@ -56,7 +62,7 @@ public class KAryHeap<T extends Comparable<? super T>> implements ExtendedPriori
         if (index == 0)
             return;
         int parent = (index - 1) / K;
-        if (get(parent).compareTo(get(index)) > 0) {
+        if (comparator.compare(get(parent), get(index)) > 0) {
             swap(index, parent);
             siftUp(parent);
         }
@@ -70,22 +76,18 @@ public class KAryHeap<T extends Comparable<? super T>> implements ExtendedPriori
         int smallest = leftmost;
         int bound = Math.min(leftmost + K, size());
         for (int i = leftmost + 1; i < bound; i++)
-            if (get(i).compareTo(get(smallest)) < 0)
+            if (comparator.compare(get(i), get(smallest)) < 0)
                 smallest = i;
 
-        if (get(index).compareTo(get(smallest)) > 0) {
+        if (comparator.compare(get(index), get(smallest)) > 0) {
             swap(smallest, index);
             siftDown(smallest);
         }
     }
 
     @Override
-    public void decrease(final T element, final T replacement) {
+    public void decrease(final T element) {
         int pos = elementIndex.get(element);
-        if (get(pos).compareTo(replacement) < 0)
-            throw new IllegalArgumentException("New key must be lower.");
-
-        emplace(pos, replacement);
         siftUp(pos);
     }
 
@@ -103,7 +105,14 @@ public class KAryHeap<T extends Comparable<? super T>> implements ExtendedPriori
     }
 
     @Override
-    public T extractMin() {
+    public T peek() {
+        if (size() == 0)
+            throw new NoSuchElementException("Heap is empty.");
+        return get(0);
+    }
+
+    @Override
+    public T pop() {
         if (size() == 0)
             throw new NoSuchElementException("Heap is empty.");
         return remove(0);

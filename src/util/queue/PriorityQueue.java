@@ -1,4 +1,4 @@
-package util;
+package util.queue;
 
 public interface PriorityQueue<T> extends SoftPriorityQueue<T> {
     void insert(T element);

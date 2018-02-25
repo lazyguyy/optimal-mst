@@ -1,8 +1,10 @@
 package main;
 
+import test.MSTTest;
+
 public class Launcher {
 
     public static void main(String[] args) {
-        System.out.println("Hello MST.");
+        MSTTest.main(args);
     }
 }
