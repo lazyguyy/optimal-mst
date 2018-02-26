@@ -9,7 +9,7 @@ import util.queue.KAryHeap;
 import java.util.Arrays;
 import java.util.Comparator;
 
-public class PrimMST {
+public final class PrimMST {
 
     public static EdgeList compute(int vertices, Iterable<WeightedEdge> edges) {
 

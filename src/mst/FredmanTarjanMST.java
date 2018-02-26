@@ -8,7 +8,7 @@ import util.queue.KAryHeap;
 
 import java.util.*;
 
-public class FredmanTarjanMST {
+public final class FredmanTarjanMST {
 
     public static EdgeList compute(int vertices, Iterable<WeightedEdge> edges) {
 

@@ -1,11 +1,19 @@
 package util.queue;
 
-public interface PriorityQueue<T> extends SoftPriorityQueue<T> {
-    void insert(T element);
+import java.util.Collections;
+
+public interface PriorityQueue<T> extends LossyPriorityQueue<T> {
+    void delete(T element);
 
     @Override
-    default boolean insertLossy(T element) {
-        insert(element);
-        return true;
+    default T pop() {
+        T element = peek();
+        delete(element);
+        return element;
+    }
+
+    @Override
+    default Iterable<T> corrupted() {
+        return Collections.emptyList();
     }
 }

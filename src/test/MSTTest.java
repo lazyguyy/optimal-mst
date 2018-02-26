@@ -23,7 +23,7 @@ public class MSTTest {
                 new WeightedEdge(2, 4, 2),
                 new WeightedEdge(3, 4, 1)
         };
-        MinimumSpanningTreeAlgorithm algorithm = KruskalMST::compute;
+        MinimumSpanningTreeAlgorithm algorithm = BoruvkaMST::compute;
         System.out.println(algorithm.findMST(5, Arrays.asList(edges)));
 
         WeightedEdge[] edges2 = {

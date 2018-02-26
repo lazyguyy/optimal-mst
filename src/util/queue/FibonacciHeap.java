@@ -1,6 +1,6 @@
 package util.queue;
 
-public class FibonacciHeap<T> implements SoftPriorityQueue<T> {
+public class FibonacciHeap<T> implements LossyPriorityQueue<T> {
 
     public FibonacciHeap() {
 

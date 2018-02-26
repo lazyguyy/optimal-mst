@@ -7,18 +7,30 @@ public class WeightedEdge implements Comparable<WeightedEdge> {
     public final int to;
     public final double weight;
 
-    public WeightedEdge(int from, int to, double weight) {
+    public WeightedEdge(final int from, final int to) {
+        this(from, to, 1);
+    }
+
+    public WeightedEdge(final int from, final int to, final double weight) {
         this.from = from;
         this.to = to;
         this.weight = weight;
     }
 
-    public static WeightedEdge unweighted(int from, int to) {
-        return new WeightedEdge(from, to, 1);
+    public int from() {
+        return from;
+    }
+
+    public int to() {
+        return to;
     }
 
     public WeightedEdge reversed() {
         return new WeightedEdge(to, from, weight);
+    }
+
+    public double weight() {
+        return weight;
     }
 
     @Override
@@ -32,7 +44,7 @@ public class WeightedEdge implements Comparable<WeightedEdge> {
     }
 
     @Override
-    public int compareTo(WeightedEdge other) {
+    public int compareTo(final WeightedEdge other) {
         return Double.compare(weight, other.weight);
     }
 }

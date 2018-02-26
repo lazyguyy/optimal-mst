@@ -8,7 +8,7 @@ import util.graph.WeightedEdge;
 import java.util.ArrayList;
 import java.util.Collections;
 
-public class KruskalMST {
+public final class KruskalMST {
 
     public static EdgeList compute(int vertices, Iterable<WeightedEdge> edges) {
 

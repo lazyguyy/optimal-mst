@@ -11,11 +11,10 @@ public final class EdgeList implements Meldable<EdgeList>, Iterable<WeightedEdge
     private Node last;
     private int size = 0;
 
-    public EdgeList() { }
+    public EdgeList() {}
 
     public EdgeList(WeightedEdge edge) {
-        first = last = new Node(edge);
-        size = 1;
+        append(edge);
     }
 
     public EdgeList(Iterable<? extends WeightedEdge> other) {
@@ -49,6 +48,8 @@ public final class EdgeList implements Meldable<EdgeList>, Iterable<WeightedEdge
     }
 
     public void append(final WeightedEdge edge) {
+        checkNotNull(edge);
+
         Node node = new Node(edge, last, null);
         if (last != null)
             last.next = node;
@@ -61,6 +62,8 @@ public final class EdgeList implements Meldable<EdgeList>, Iterable<WeightedEdge
     }
 
     public void prepend(final WeightedEdge edge) {
+        checkNotNull(edge);
+
         Node node = new Node(edge, null, last);
         if (first != null)
             first.next = node;
@@ -124,6 +127,10 @@ public final class EdgeList implements Meldable<EdgeList>, Iterable<WeightedEdge
             current = current.next;
             return e;
         }
+    }
+
+    private void checkNotNull(final WeightedEdge edge) {
+        if (edge == null) throw new IllegalArgumentException("Edges may not be null.");
     }
 
     private static class Node {
