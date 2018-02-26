@@ -102,7 +102,7 @@ public class SoftHeap<T> implements LossyPriorityQueue<T>, Meldable<SoftHeap<T>>
             currentQueue = thisHeap;
             thisHeap = thisHeap.nextHeap;
         }
-        BinaryHeap newQueue = currentQueue;
+        // Keeps track of the root of the linked list of binary heaps
         BinaryHeap root = currentQueue;
         while (thisHeap != null && otherHeap != null) {
             if (otherHeap.root.rank < thisHeap.root.rank) {
@@ -119,6 +119,7 @@ public class SoftHeap<T> implements LossyPriorityQueue<T>, Meldable<SoftHeap<T>>
 
             currentQueue = currentQueue.nextHeap;   
         }
+        // Append all the missing binary heaps
         if (thisHeap != null) {
             currentQueue.nextHeap = thisHeap;
             thisHeap.previousHeap = currentQueue;
@@ -129,30 +130,36 @@ public class SoftHeap<T> implements LossyPriorityQueue<T>, Meldable<SoftHeap<T>>
 
         // Next we combine heaps of the same rank
         int currentRank = 1;
-        while (newQueue.nextHeap != null) {
-            if (newQueue.root.rank == newQueue.nextHeap.root.rank) {
-                if (newQueue.nextHeap.nextHeap == null ||
-                    newQueue.nextHeap.root.rank != newQueue.nextHeap.nextHeap.root.rank) {
-                    BinaryHeap newHeap = combine(newQueue, newQueue.nextHeap);
-                    newHeap.previousHeap = newQueue.previousHeap;
+        // Reset to start of linked list
+        currentQueue = root;
+        while (currentQueue.nextHeap != null) {
+            if (currentQueue.root.rank == currentQueue.nextHeap.root.rank) {
+                // Only merge two trees if there are not 3 of the same kind
+                if (currentQueue.nextHeap.nextHeap == null ||
+                    currentQueue.nextHeap.root.rank != currentQueue.nextHeap.nextHeap.root.rank) {
+                    BinaryHeap newHeap = combine(currentQueue, currentQueue.nextHeap);
+                    newHeap.previousHeap = currentQueue.previousHeap;
                     currentRank = Math.max(currentRank, newHeap.root.rank);
                     if (newHeap.previousHeap == null) {
                         root = newHeap;
                     } else {
-                        newQueue.nextHeap = newHeap;
+                        currentQueue.nextHeap = newHeap;
                     }
-                } 
-            } else if (newQueue.root.rank > maxRank) {
+                }
+            // we only need to look at trees smaller than maxRank + 1
+            // because all trees with higher rank can only be part of one
+            // of the list of heaps.
+            } else if (currentQueue.root.rank > maxRank + 1) {
                 break;
             }
-            newQueue = newQueue.nextHeap;
+            currentQueue = currentQueue.nextHeap;
             rank = Math.max(rank, currentRank);
         }
 
         queue = root;
         corruptedElements.addAll(other.corruptedElements);
         size += other.size();
-        newQueue.updateSuffixMin();
+        currentQueue.updateSuffixMin();
 
         return this;
     }
@@ -222,7 +229,7 @@ public class SoftHeap<T> implements LossyPriorityQueue<T>, Meldable<SoftHeap<T>>
 
         /**
          * Returns whether a node is a leaf, which is the case
-         * if both of its childs don't exist.
+         * if both of its children don't exist.
          * @return whether the node is a leaf
          */
         public boolean isLeaf() {
