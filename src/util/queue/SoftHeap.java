@@ -62,6 +62,7 @@ public class SoftHeap<T> implements LossyPriorityQueue<T>, Meldable<SoftHeap<T>>
                 minHeap.previousHeap = minHeap.nextHeap;
             }
         }
+        corruptedElements.remove(elements);
         size--;
         return element;
     }
