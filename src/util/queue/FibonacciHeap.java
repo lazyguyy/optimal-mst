@@ -17,17 +17,18 @@ public class FibonacciHeap<T> implements LossyPriorityQueue<T> {
     }
 
     @Override
-    public boolean insertLossy(T value) {
-        return false;
-    }
-
-    @Override
-    public void delete(T value) {
-
+    public void insert(T value) {
     }
 
     @Override
     public int size() {
         return 0;
     }
+
+	@Override
+	public Iterable<T> corrupted() {
+		return null;
+	}
+
+
 }

@@ -1,3 +1,5 @@
 *.class
 *compiled*
 *.jar
+*.classpath
+*.project

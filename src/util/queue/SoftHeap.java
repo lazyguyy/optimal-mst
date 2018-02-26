@@ -6,6 +6,8 @@ import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.stream.Collectors;
+import java.util.Collections;
 
 public class SoftHeap<T> implements LossyPriorityQueue<T>, Meldable<SoftHeap<T>> {
 
@@ -19,15 +21,26 @@ public class SoftHeap<T> implements LossyPriorityQueue<T>, Meldable<SoftHeap<T>>
 
     
     public SoftHeap(double errorRate, Comparator<? super T> comparator, T element) {
-        this.errorRate = errorRate;
-        // Cause Java doesn't support computing the logarithm to an arbitrary base...
-        nodeTargetSize = (int)Math.ceil(Math.log(1 / errorRate) / Math.log(2)) + 5;
-        this.comparator = comparator;
-        queue = new BinaryHeap(element);
+        this(errorRate, comparator);
+        queue.root.insert(element);
         size = 1;
         rank = 1;
         corruptedElements = new HashSet<>();
     }
+
+    public SoftHeap(double errorRate, Comparator<? super T> comparator) {
+        this.errorRate = errorRate;
+        // Cause Java doesn't support computing the logarithm to an arbitrary base...
+        nodeTargetSize = (int)Math.ceil(Math.log(1 / errorRate) / Math.log(2)) + 5;
+        this.comparator = comparator;
+        queue = new BinaryHeap();
+
+    }
+
+    public static <S extends Comparable<? super S>> SoftHeap<S> naturallyOrdered(double errorRate) {
+        return new SoftHeap<>(errorRate, S::compareTo);
+    }
+
 
     @Override
     public int size() {
@@ -164,13 +177,24 @@ public class SoftHeap<T> implements LossyPriorityQueue<T>, Meldable<SoftHeap<T>>
         return this;
     }
 
+
+    // Yeah, Stringbuilder would have been better. On the other hand, this is only for small testing purposes
+    // and will be removed once the project is finished.
+    public String toString() {
+        String ret = "";
+        for (BinaryHeap heap = queue; heap != null; heap = heap.nextHeap) {
+            ret += heap.root;
+        }
+        return ret;
+    }
+
     protected class BinaryHeap {
         BinaryHeapNode root;
         BinaryHeap nextHeap, previousHeap;
         BinaryHeap sufMin;
 
-        public BinaryHeap(T element) {
-            root.insert(element);
+        public BinaryHeap() {
+            root = new BinaryHeapNode();
         }
 
         public BinaryHeap(BinaryHeapNode root) {
@@ -215,13 +239,21 @@ public class SoftHeap<T> implements LossyPriorityQueue<T>, Meldable<SoftHeap<T>>
             sift();
         }
 
+        public BinaryHeapNode() {
+            rank = 1;
+            size = 1;
+            nodeElements = new ArrayList<>();
+        }
+
         /**
          * Inserts the given element into the selected node.
          * @param element the element to be inserted
          * @throws IllegalArgumentException in case the key is too large
          */
         public void insert(T element) {
-            if (comparator.compare(element, key) > 0) {
+            if (key == null) {
+                key = element;
+            } else if (comparator.compare(element, key) > 0) {
                 throw new IllegalArgumentException(String.format("element %s is too large for %s", element, key));
             }
             nodeElements.add(element);
@@ -258,8 +290,8 @@ public class SoftHeap<T> implements LossyPriorityQueue<T>, Meldable<SoftHeap<T>>
                 // Update the set keeping track of the corrupted elements
                 corruptedElements.addAll(leftChild.nodeElements);
                 // Append all elements from the child node
-                nodeElements.addAll(leftChild.nodeElements);
                 key = leftChild.key;
+                nodeElements.addAll(leftChild.nodeElements);
                 leftChild.nodeElements.clear();
                 
                 // Recurse and delete the child if it appears to be empty
@@ -269,6 +301,10 @@ public class SoftHeap<T> implements LossyPriorityQueue<T>, Meldable<SoftHeap<T>>
                 }
             }
             return nodeElements.size();
+        }
+
+        public String toString() {
+            return String.join("", Collections.nCopies(rank, " ")) + String.format("%s, %s, %s: ", rank, size, key) + nodeElements.stream().map(Object::toString).collect(Collectors.joining("[", ", ","]")) + " -> \n" + leftChild + "\n" + rightChild + "\n";
         }
     }
 }
