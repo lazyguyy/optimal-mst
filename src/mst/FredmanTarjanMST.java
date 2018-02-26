@@ -1,8 +1,6 @@
 package mst;
 
-import util.graph.EdgeList;
-import util.graph.Graphs;
-import util.graph.WeightedEdge;
+import util.graph.*;
 import util.queue.ExtendedPriorityQueue;
 import util.queue.KAryHeap;
 
@@ -10,23 +8,27 @@ import java.util.*;
 
 public final class FredmanTarjanMST {
 
-    public static EdgeList compute(int vertices, Iterable<WeightedEdge> edges) {
+    public static EdgeList<WeightedEdge> compute(int vertices, Iterable<WeightedEdge> edges) {
+        EdgeList<ContractedEdge> wrapper = new EdgeList<>();
+        for (WeightedEdge e : edges)
+            wrapper.append(new ContractedEdge(e));
+        return recurse(vertices, wrapper);
+    }
+
+    private static EdgeList<WeightedEdge> recurse(int vertices, EdgeList<ContractedEdge> edges) {
+
+        if (vertices < 2)
+            return new EdgeList<>();
 
         double[] distances = new double[vertices];
-        int[] component = new int[vertices];
-        WeightedEdge[] lightest = new WeightedEdge[vertices];
+        ContractedEdge[] predecessorEdge = new ContractedEdge[vertices];
 
         for (int i = 0; i < vertices; i++)
             distances[i] = Double.POSITIVE_INFINITY;
 
-        // -1 represents no component
-        for (int i = 0; i < vertices; i++)
-            component[i] = -1;
+        AdjacencyList<ContractedEdge> adjacency = AdjacencyList.of(vertices, edges);
 
-        EdgeList[] adjacency = Graphs.adjacencyList(vertices, edges);
-
-        int edgeCount = 0;
-        for (WeightedEdge i : edges) edgeCount++;
+        int edgeCount = edges.size();
 
         // TODO use fibonacci heaps
         ExtendedPriorityQueue<Integer> queue = new KAryHeap<>(2, Comparator.comparingDouble(i -> distances[i]));
@@ -34,56 +36,72 @@ public final class FredmanTarjanMST {
         for (int i = 0; i < vertices; i++)
             queue.insert(i);
 
-        // TODO replace by integer power
-        int componentMax = (int) Math.ceil(Math.pow(2, 2 * edgeCount / vertices));
+        // calculate upper bound for component size
+        int exp = 2 * edgeCount / vertices;
+        // avoid overflows
+        exp = Math.min(63, exp);
+        long componentMax = 1 << exp;
 
+        int[] discoveredInIteration = new int[vertices];
+        for (int i = 0; i < vertices; i++)
+            discoveredInIteration[i] = -1;
+
+        int iterations = 0;
+
+        // grow component trees
         while (!queue.empty()) {
 
             int componentSize = 0;
 
             // find arbitrary tree root
             int componentRoot = queue.peek();
-            lightest[componentRoot] = null;
+            predecessorEdge[componentRoot] = null;
 
+            // grow a single tree
             while (!queue.empty() && componentSize < componentMax) {
                 int vertex = queue.pop();
 
-                component[vertex] = componentCount;
-
                 componentSize++;
+                discoveredInIteration[vertex] = iterations;
 
                 // stop if two trees are about to merge
-                int predecessor = lightest[vertex].from;
-                if (component[predecessor] != component[vertex])
-                    break;
+                if (predecessorEdge[vertex] != null) {
+                    int predecessor = predecessorEdge[vertex].from();
+                    if (discoveredInIteration[predecessor] != discoveredInIteration[vertex])
+                        break;
+                }
 
-                for (WeightedEdge e : adjacency[vertex]) {
-                    if (component[e.to] == -1 && distances[e.to] > e.weight) {
-                        distances[e.to] = e.weight;
-                        lightest[e.to] = e;
-                        queue.decrease(e.to);
+                for (ContractedEdge e : adjacency.get(vertex)) {
+                    if (discoveredInIteration[e.to()] == -1 && distances[e.to()] > e.weight()) {
+                        distances[e.to()] = e.weight();
+                        predecessorEdge[e.to()] = e;
+                        queue.decrease(e.to());
                     }
                 }
             }
-            componentCount++;
+            iterations++;
         }
 
-        // feed iterator over non-null elements into EdgeList
-        EdgeList primEdges = new EdgeList(() -> Arrays.stream(lightest).filter(Objects::nonNull).iterator());
+        // find non-null edges
+        HashSet<ContractedEdge> forestEdges = new HashSet<>();
+        for (ContractedEdge e : predecessorEdge) {
+            if (e == null)
+                continue;
+            forestEdges.add(e);
+        }
+
+        // extract original edges
+        EdgeList<WeightedEdge> markedEdges = new EdgeList<>();
+        forestEdges.stream().map(e -> e.original).forEach(markedEdges::append);
 
         // if a single component remains we can return the mst edges
-        if (componentCount == 1)
-            return primEdges;
+        if (iterations == 1)
+            return markedEdges;
 
         // otherwise we contract the components
-        // TODO select appropriate collection for this
-        // TODO filter duplicates
-        ArrayList<WeightedEdge> contracted = new ArrayList<>();
-        for (WeightedEdge e : edges)
-            if (component[e.from] != component[e.to])
-                contracted.add(new WeightedEdge(component[e.from], component[e.to], e.weight));
+        Graphs.ContractedWrapper contracted = Graphs.contract(vertices, forestEdges, edges);
 
         // and recurse on the contracted graph
-        return compute(componentCount, contracted).meld(primEdges);
+        return recurse(contracted.size, contracted.edges).meld(markedEdges);
     }
 }

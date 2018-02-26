@@ -12,14 +12,14 @@ public final class BoruvkaMST {
     public static EdgeList compute(int vertices, Iterable<WeightedEdge> edges) {
         ArrayList<ContractedEdge> wrapper = new ArrayList<>();
         for (WeightedEdge e : edges)
-            wrapper.add(new ContractedEdge(e.from, e.to, e));
+            wrapper.add(new ContractedEdge(e));
         return recurse(vertices, wrapper);
     }
 
-    private static EdgeList recurse(int vertices, Iterable<ContractedEdge> edges) {
+    private static EdgeList<WeightedEdge> recurse(int vertices, Iterable<ContractedEdge> edges) {
 
         if (vertices < 2)
-            return new EdgeList();
+            return new EdgeList<>();
 
         // TODO guarantee different edge weights!
         ContractedEdge[] lightest = new ContractedEdge[vertices];
@@ -27,10 +27,10 @@ public final class BoruvkaMST {
         // store lightest edge for each vertex
         for (ContractedEdge ce : edges) {
             // vertex numbers correspond to those in the original graph, so we have to map them to their component
-            if (lightest[ce.from] == null || lightest[ce.from].original.weight < ce.original.weight)
-                lightest[ce.from] = ce;
-            if (lightest[ce.to] == null || lightest[ce.to].original.weight < ce.original.weight)
-                lightest[ce.to] = ce;
+            if (lightest[ce.from()] == null || lightest[ce.from()].compareTo(ce) > 0)
+                lightest[ce.from()] = ce;
+            if (lightest[ce.to()] == null || lightest[ce.to()].compareTo(ce) > 0)
+                lightest[ce.to()] = ce;
         }
 
         HashSet<ContractedEdge> forestEdges = new HashSet<>();
@@ -40,21 +40,12 @@ public final class BoruvkaMST {
             forestEdges.add(e);
         }
 
-        // find connected components
-        int[] component = Graphs.components(vertices, forestEdges);
+        Graphs.ContractedWrapper contracted = Graphs.contract(vertices, forestEdges, edges);
 
-        int componentCount = Arrays.stream(component).max().orElse(-1) + 1;
+        // extract original edges
+        EdgeList<WeightedEdge> markedEdges = new EdgeList<>();
+        forestEdges.stream().map(e -> e.original).forEach(markedEdges::append);
 
-        ArrayList<ContractedEdge> remainingEdges = new ArrayList<>();
-        for (ContractedEdge ce : edges) {
-            if (component[ce.from] == component[ce.to])
-                continue;
-            remainingEdges.add(new ContractedEdge(component[ce.from], component[ce.to], ce.original));
-        }
-
-        // TODO remove duplicates
-
-        EdgeList markedEdges = new EdgeList(() -> forestEdges.stream().map(e -> e.original).iterator());
-        return recurse(componentCount, remainingEdges).meld(markedEdges);
+        return recurse(contracted.size, contracted.edges).meld(markedEdges);
     }
 }

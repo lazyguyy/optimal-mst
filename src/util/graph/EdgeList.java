@@ -4,29 +4,32 @@ import util.queue.Meldable;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import java.util.function.IntFunction;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
-public final class EdgeList implements Meldable<EdgeList>, Iterable<WeightedEdge> {
+public final class EdgeList<E extends DirectedEdge<E>> implements Meldable<EdgeList<E>>, Iterable<E> {
 
-    private Node first;
-    private Node last;
+    private Node<E> first;
+    private Node<E> last;
     private int size = 0;
 
     public EdgeList() {}
 
-    public EdgeList(WeightedEdge edge) {
+    public EdgeList(E edge) {
         append(edge);
     }
 
-    public EdgeList(Iterable<? extends WeightedEdge> other) {
+    public EdgeList(Iterable<? extends E> other) {
         other.forEach(this::append);
     }
 
     @Override
-    public EdgeList meld(final EdgeList other) {
+    public EdgeList<E> meld(final EdgeList<E> other) {
         if (other == null)
             throw new NullPointerException("Attempting to meld null.");
 
-        EdgeList union = new EdgeList();
+        EdgeList<E> union = new EdgeList<>();
 
         union.first = size > 0 ? first : other.first;
         union.last = other.size > 0 ? other.last : last;
@@ -47,10 +50,10 @@ public final class EdgeList implements Meldable<EdgeList>, Iterable<WeightedEdge
         return size;
     }
 
-    public void append(final WeightedEdge edge) {
+    public void append(final E edge) {
         checkNotNull(edge);
 
-        Node node = new Node(edge, last, null);
+        Node<E> node = new Node<>(edge, last, null);
         if (last != null)
             last.next = node;
 
@@ -61,10 +64,10 @@ public final class EdgeList implements Meldable<EdgeList>, Iterable<WeightedEdge
         size++;
     }
 
-    public void prepend(final WeightedEdge edge) {
+    public void prepend(final E edge) {
         checkNotNull(edge);
 
-        Node node = new Node(edge, null, last);
+        Node<E> node = new Node<>(edge, null, last);
         if (first != null)
             first.next = node;
 
@@ -77,8 +80,8 @@ public final class EdgeList implements Meldable<EdgeList>, Iterable<WeightedEdge
 
     public double weight() {
         double sum = 0;
-        for (WeightedEdge e : this)
-            sum += e.weight;
+        for (E e : this)
+            sum += e.weight();
         return sum;
     }
 
@@ -87,30 +90,30 @@ public final class EdgeList implements Meldable<EdgeList>, Iterable<WeightedEdge
         size = 0;
     }
 
+    public Stream<E> stream() {
+        return StreamSupport.stream(spliterator(), false);
+    }
+
+    public E[] toArray(IntFunction<E[]> generator) {
+        return stream().toArray(generator);
+    }
+
     @Override
     public String toString() {
-        return java.util.stream.StreamSupport.stream(spliterator(), false)
-                .map(WeightedEdge::toString)
-                .collect(java.util.stream.Collectors.joining("\n ", "[", "]"));
-    }
-
-    public WeightedEdge[] toArray() {
-        WeightedEdge[] arr = new WeightedEdge[size];
-        int i = 0;
-        for (WeightedEdge e : this)
-            arr[i++] = e;
-        return arr;
+        return stream()
+                .map(E::toString)
+                .collect(java.util.stream.Collectors.joining("\n  ", "[", "]"));
     }
 
     @Override
-    public Iterator<WeightedEdge> iterator() {
-        return new Itr(this);
+    public Iterator<E> iterator() {
+        return new Itr<>(this);
     }
 
-    private static class Itr implements Iterator<WeightedEdge> {
-        Node current;
+    private static class Itr<E extends DirectedEdge<E>> implements Iterator<E> {
+        Node<E> current;
 
-        Itr(EdgeList list) {
+        Itr(EdgeList<E> list) {
             current = list.first;
         }
 
@@ -120,29 +123,29 @@ public final class EdgeList implements Meldable<EdgeList>, Iterable<WeightedEdge
         }
 
         @Override
-        public WeightedEdge next() {
+        public E next() {
             if (current == null)
                 throw new NoSuchElementException("No more elements.");
-            WeightedEdge e = current.edge;
+            E e = current.edge;
             current = current.next;
             return e;
         }
     }
 
-    private void checkNotNull(final WeightedEdge edge) {
+    private void checkNotNull(final E edge) {
         if (edge == null) throw new IllegalArgumentException("Edges may not be null.");
     }
 
-    private static class Node {
-        final WeightedEdge edge;
-        Node prev;
-        Node next;
+    private static class Node<E extends DirectedEdge<E>> {
+        final E edge;
+        Node<E> prev;
+        Node<E> next;
 
-        Node(final WeightedEdge edge) {
+        Node(final E edge) {
             this.edge = edge;
         }
 
-        Node(final WeightedEdge edge, final Node prev, final Node next) {
+        Node(final E edge, final Node<E> prev, final Node<E> next) {
             this(edge);
             this.prev = prev;
             this.next = next;

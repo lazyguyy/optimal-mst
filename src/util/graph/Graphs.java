@@ -1,27 +1,16 @@
 package util.graph;
 
 import java.util.ArrayDeque;
+import java.util.Arrays;
 
 public final class Graphs {
 
     private Graphs() {}
 
-    public static EdgeList[] adjacencyList(int vertices, Iterable<? extends WeightedEdge> edges) {
-        EdgeList[] adjacency = new EdgeList[vertices];
-        for (int i = 0; i < vertices; i++)
-            adjacency[i] = new EdgeList();
-
-        for (WeightedEdge e : edges) {
-            adjacency[e.from].append(e);
-            adjacency[e.to].append(e.reversed());
-        }
-        return adjacency;
-    }
-
-    public static int[] components(int vertices, Iterable<? extends WeightedEdge> edges) {
+    public static <E extends DirectedEdge<E>> int[] components(int vertices, Iterable<E> edges) {
 
         // generate adjacency list
-        EdgeList[] adjacency = adjacencyList(vertices, edges);
+        AdjacencyList<E> adjacency = AdjacencyList.of(vertices, edges);
 
         // initialize components
         int component[] = new int[vertices];
@@ -41,7 +30,7 @@ public final class Graphs {
                 int neighbor = stack.pop();
                 // set component id for every connected vertex
                 component[neighbor] = componentCount;
-                for (WeightedEdge e : adjacency[v])
+                for (E e : adjacency.get(neighbor))
                     if (component[e.to()] == -1)
                         stack.push(e.to());
             }
@@ -51,34 +40,32 @@ public final class Graphs {
         return component;
     }
 
-    // TODO make this work with boruvka
-    public static EdgeList removeDuplicates(int vertices, Iterable<WeightedEdge> edges) {
+    public static int componentCount(int[] components) {
+        return Arrays.stream(components).max().orElse(-1) + 1;
+    }
+
+    public static <E extends DirectedEdge<E>> EdgeList<E> removeDuplicates(int vertices, Iterable<E> edges) {
+
+        AdjacencyList<E> firstPass = new AdjacencyList<>(vertices);
+        AdjacencyList<E> secondPass = new AdjacencyList<>(vertices);
 
         // first pass: bucket by e.to
-        EdgeList[] firstPass = new EdgeList[vertices];
-        for (int i = 0; i < vertices; i++)
-            firstPass[i] = new EdgeList();
-
-        // second pass: bucket by e.from
-        EdgeList[] secondPass = new EdgeList[vertices];
-        for (int i = 0; i < vertices; i++)
-            secondPass[i] = new EdgeList();
-
-        for (WeightedEdge e : edges) {
+        for (E e : edges) {
             if (e.from() > e.to())
                 e = e.reversed();
-            firstPass[e.to()].append(e);
+            firstPass.append(e.to(), e);
         }
 
+        // second pass: bucket by e.from
         for (int v = 0; v < vertices; v++)
-            for (WeightedEdge e : firstPass[vertices - v - 1])
-                secondPass[e.from()].append(e);
+            for (E e : firstPass.get(vertices - v - 1))
+                secondPass.append(e.from(), e);
 
-        EdgeList result = new EdgeList();
+        EdgeList<E> result = new EdgeList<>();
         for (int v = 0; v < vertices; v++) {
-            WeightedEdge lightest = null;
+            E lightest = null;
             // find lightest edge from v to all connected vertices
-            for (WeightedEdge e : secondPass[v]) {
+            for (E e : secondPass.get(v)) {
                 // skip self-loops
                 if (e.to() == v)
                     continue;
@@ -99,5 +86,35 @@ public final class Graphs {
                 result.append(lightest);
         }
         return result;
+    }
+
+    public static ContractedWrapper contract(int vertices, Iterable<ContractedEdge> span, Iterable<ContractedEdge> edges) {
+
+        // find connected components
+        int[] component = Graphs.components(vertices, span);
+        // find number of components
+        int componentCount = Graphs.componentCount(component);
+
+        // contract components
+        EdgeList<ContractedEdge> contracted = new EdgeList<>();
+        for (ContractedEdge ce : edges) {
+            if (component[ce.from()] == component[ce.to()])
+                continue;
+            contracted.append(new ContractedEdge(component[ce.from()], component[ce.to()], ce.original));
+        }
+        // remove duplicates
+        EdgeList<ContractedEdge> remainingEdges = Graphs.removeDuplicates(componentCount, contracted);
+
+        return new ContractedWrapper(componentCount, remainingEdges);
+    }
+
+    public static final class ContractedWrapper {
+        public final int size;
+        public final EdgeList<ContractedEdge> edges;
+
+        ContractedWrapper(int size, EdgeList<ContractedEdge> edges) {
+            this.size = size;
+            this.edges = edges;
+        }
     }
 }

@@ -1,5 +1,6 @@
 package mst;
 
+import util.graph.AdjacencyList;
 import util.graph.EdgeList;
 import util.graph.Graphs;
 import util.graph.WeightedEdge;
@@ -11,7 +12,7 @@ import java.util.Comparator;
 
 public final class PrimMST {
 
-    public static EdgeList compute(int vertices, Iterable<WeightedEdge> edges) {
+    public static EdgeList<WeightedEdge> compute(int vertices, Iterable<WeightedEdge> edges) {
 
         double[] distances = new double[vertices];
         boolean[] visited = new boolean[vertices];
@@ -20,7 +21,7 @@ public final class PrimMST {
         for (int i = 0; i < vertices; i++)
             distances[i] = Double.POSITIVE_INFINITY;
 
-        EdgeList[] adjacency = Graphs.adjacencyList(vertices, edges);
+        AdjacencyList<WeightedEdge> adjacency = AdjacencyList.of(vertices, edges);
 
         // TODO use fib heaps
         ExtendedPriorityQueue<Integer> queue = new KAryHeap<>(2, Comparator.comparingDouble(i -> distances[i]));
@@ -35,15 +36,15 @@ public final class PrimMST {
             int vertex = queue.pop();
             visited[vertex] = true;
 
-            for (WeightedEdge e : adjacency[vertex]) {
-                if (!visited[e.to] && distances[e.to] > e.weight) {
-                    distances[e.to] = e.weight;
-                    lightest[e.to] = e;
-                    queue.decrease(e.to);
+            for (WeightedEdge e : adjacency.get(vertex)) {
+                if (!visited[e.to()] && distances[e.to()] > e.weight()) {
+                    distances[e.to()] = e.weight();
+                    lightest[e.to()] = e;
+                    queue.decrease(e.to());
                 }
             }
         }
 
-        return new EdgeList(Arrays.asList(lightest).subList(1, vertices));
+        return new EdgeList<>(Arrays.asList(lightest).subList(1, vertices));
     }
 }

@@ -1,5 +1,6 @@
 package util.queue;
 
+// TODO rename to "corrupting"
 public interface LossyPriorityQueue<T> {
     T peek();
     T pop();

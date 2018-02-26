@@ -1,9 +1,7 @@
 package test;
 
 import mst.*;
-import util.graph.EdgeList;
-import util.graph.Graphs;
-import util.graph.MinimumSpanningTreeAlgorithm;
+import mst.MinimumSpanningTreeAlgorithm;
 import util.graph.WeightedEdge;
 
 import java.util.Arrays;
@@ -12,32 +10,21 @@ public class MSTTest {
 
     public static void main(String[] args) {
         WeightedEdge[] edges = {
-                new WeightedEdge(0, 1, 10),
-                new WeightedEdge(0, 2, 9),
-                new WeightedEdge(0, 3, 8),
-                new WeightedEdge(0, 4, 7),
-                new WeightedEdge(1, 2, 6),
-                new WeightedEdge(1, 3, 5),
-                new WeightedEdge(1, 4, 4),
-                new WeightedEdge(2, 3, 3),
-                new WeightedEdge(2, 4, 2),
-                new WeightedEdge(3, 4, 1)
+                new WeightedEdge(0, 1, 5),
+                new WeightedEdge(1, 2, 2),
+                new WeightedEdge(2, 3, 6),
+                new WeightedEdge(3, 4, 3),
+                new WeightedEdge(4, 5, 7),
+                new WeightedEdge(5, 0, 4),
         };
-        MinimumSpanningTreeAlgorithm algorithm = BoruvkaMST::compute;
-        System.out.println(algorithm.findMST(5, Arrays.asList(edges)));
+        MinimumSpanningTreeAlgorithm[] algorithms = {
+                BoruvkaMST::compute,
+                PrimMST::compute,
+                KruskalMST::compute,
+                FredmanTarjanMST::compute
+        };
 
-        WeightedEdge[] edges2 = {
-                new WeightedEdge(0, 1, 10),
-                new WeightedEdge(0, 1, 9),
-                new WeightedEdge(1, 0, 8),
-                new WeightedEdge(1, 0, 7),
-                new WeightedEdge(1, 2, 6),
-                new WeightedEdge(2, 1, 5),
-                new WeightedEdge(1, 2, 4),
-                new WeightedEdge(1, 0, 3),
-                new WeightedEdge(2, 3, 2),
-                new WeightedEdge(3, 2, 1)
-        };
-        System.out.println(Graphs.removeDuplicates(4, new EdgeList(Arrays.asList(edges2))));
+        for (MinimumSpanningTreeAlgorithm algorithm : algorithms)
+            System.out.println(algorithm.findMST(6, Arrays.asList(edges)));
     }
 }

@@ -1,5 +1,6 @@
 package util.queue;
 
+/*
 public class FibonacciHeap<T> implements LossyPriorityQueue<T> {
 
     public FibonacciHeap() {
@@ -31,3 +32,4 @@ public class FibonacciHeap<T> implements LossyPriorityQueue<T> {
         return 0;
     }
 }
+*/
