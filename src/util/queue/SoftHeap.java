@@ -152,6 +152,7 @@ public class SoftHeap<T> implements LossyPriorityQueue<T>, Meldable<SoftHeap<T>>
         queue = root;
         corruptedElements.addAll(other.corruptedElements);
         size += other.size();
+        newQueue.updateSuffixMin();
 
         return this;
     }
