@@ -1,12 +1,6 @@
 package util.queue;
 
-import java.util.List;
-import java.util.Set;
-import java.util.Comparator;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.stream.Collectors;
-import java.util.Collections;
+import java.util.*;
 
 public class SoftHeap<T> implements SoftPriorityQueue<T>, Meldable<SoftHeap<T>> {
 
@@ -21,6 +15,7 @@ public class SoftHeap<T> implements SoftPriorityQueue<T>, Meldable<SoftHeap<T>> 
     
     public SoftHeap(double errorRate, Comparator<? super T> comparator, T element) {
         this(errorRate, comparator);
+        queue = new BinaryHeap();
         queue.root.insert(element);
         size = 1;
         rank = 1;
@@ -32,7 +27,6 @@ public class SoftHeap<T> implements SoftPriorityQueue<T>, Meldable<SoftHeap<T>> 
         // Cause Java doesn't support computing the logarithm to an arbitrary base...
         nodeTargetSize = (int)Math.ceil(Math.log(1 / errorRate) / Math.log(2)) + 5;
         this.comparator = comparator;
-        queue = new BinaryHeap();
 
     }
 
@@ -54,135 +48,145 @@ public class SoftHeap<T> implements SoftPriorityQueue<T>, Meldable<SoftHeap<T>> 
     @Override
     public T peek() {
         List<? extends T> elements = queue.sufMin.root.nodeElements;
-        return elements.get(elements.size() - 1);
+        return elements.get(0);
     }
 
     @Override
     public T pop() {
         BinaryHeap minHeap = queue.sufMin;
         List<T> elements = minHeap.root.nodeElements;
-        T element = elements.get(elements.size() - 1);
-        elements.remove(elements.size() - 1);
-        // This binary heap does not contain any elements at all
-        if (minHeap.root.sift() == 0) {
-            if (minHeap.nextHeap != null) {
-                minHeap.nextHeap.previousHeap = minHeap.previousHeap;
-            }
-            if (minHeap.previousHeap == null) {
-                minHeap = minHeap.nextHeap;
-            } else {
-                minHeap.previousHeap = minHeap.nextHeap;
-            }
+        T element = elements.get(0);
+        elements.remove(0);
+        if (minHeap.root.size * 0.5 > elements.size()) {
+        	// This binary heap does not contain any elements at all
+        	if (minHeap.root.sift() == 0) {
+                if (minHeap.nextHeap != null) {
+                    minHeap.nextHeap.previousHeap = minHeap.previousHeap;
+                }
+                if (minHeap.previousHeap == null) {
+                    queue = minHeap.nextHeap;
+                } else {
+                    minHeap.previousHeap.nextHeap = minHeap.nextHeap;
+                    minHeap.previousHeap.updateSuffixMin();
+                }
+        	} else {
+        		minHeap.updateSuffixMin();
+        	}
         }
         corruptedElements.remove(elements);
         size--;
         return element;
     }
 
-    private SoftHeap<T> makeHeap(T element) {
-        SoftHeap<T> newHeap = new SoftHeap<T>(errorRate, comparator, element);
-        return newHeap;
-    }
-
     @Override
     public void insert(T element) {
-        SoftHeap<T> newHeap = makeHeap(element);
+        SoftHeap<T> newHeap = new SoftHeap<T>(errorRate, comparator, element);
         meld(newHeap);
     }
 
     private BinaryHeap combine(BinaryHeap first, BinaryHeap second) {
-        BinaryHeapNode newRoot = new BinaryHeapNode(first.root, second.root, null, first.root.rank);
+        BinaryHeapNode newRoot = new BinaryHeapNode(first.root, second.root, null, first.root.rank + 1);
         BinaryHeap newHeap = new BinaryHeap(newRoot);
+        if (second.nextHeap != null) {
+        	second.nextHeap.previousHeap = newHeap;
+        }
         newHeap.previousHeap = first.previousHeap;
         newHeap.nextHeap = second.nextHeap;
         first.nextHeap = null;
         second.previousHeap = null;
         return newHeap;
     }
+    
+    public void reset() {
+    	this.queue = null;
+    	this.size = 0;
+    	this.rank = 0;
+    	this.corruptedElements.clear();
+    }
 
     @Override
     public void meld(SoftHeap<T> other) {
+    	if (this.queue == null) {
+    		this.queue = other.queue;
+    		this.rank = other.rank;
+    		this.corruptedElements = other.corruptedElements;
+    		this.size = other.size;
+    		queue.updateSuffixMin();
+    		other.reset();
+    	}
         BinaryHeap thisHeap = this.queue, otherHeap = other.queue;
-        BinaryHeap currentQueue;
-        int maxRank = 1; 
+        BinaryHeap currentHeap;
+        int maxRank = 1;
         // First we merge both Lists of binary heaps and keep them
         // in non-decreasing order of ranks
+        // Decide from which queue to take first
         if(otherHeap.root.rank < thisHeap.root.rank) {
-            currentQueue = otherHeap;
+            currentHeap = otherHeap;
             otherHeap = otherHeap.nextHeap;  
         } else {
-            currentQueue = thisHeap;
+            currentHeap = thisHeap;
             thisHeap = thisHeap.nextHeap;
         }
         // Keeps track of the root of the linked list of binary heaps
-        BinaryHeap root = currentQueue;
+        BinaryHeap root = currentHeap;
+        // Merge as long as we have not reached the end of one of the queues
         while (thisHeap != null && otherHeap != null) {
             if (otherHeap.root.rank < thisHeap.root.rank) {
-                currentQueue.nextHeap = otherHeap;
-                otherHeap.previousHeap = currentQueue;
+                currentHeap.nextHeap = otherHeap;
+                otherHeap.previousHeap = currentHeap;
                 maxRank = Math.max(maxRank, otherHeap.root.rank);
                 otherHeap = otherHeap.nextHeap;
             } else {
-                currentQueue.nextHeap = thisHeap;
-                thisHeap.previousHeap = currentQueue;
+                currentHeap.nextHeap = thisHeap;
+                thisHeap.previousHeap = currentHeap;
                 maxRank = Math.max(maxRank, thisHeap.root.rank);
                 thisHeap = thisHeap.nextHeap;
             }
 
-            currentQueue = currentQueue.nextHeap;   
+            currentHeap = currentHeap.nextHeap;   
         }
         // Append all the missing binary heaps
         if (thisHeap != null) {
-            currentQueue.nextHeap = thisHeap;
-            thisHeap.previousHeap = currentQueue;
+            currentHeap.nextHeap = thisHeap;
+            thisHeap.previousHeap = currentHeap;
         } else {
-            currentQueue.nextHeap = otherHeap;
-            otherHeap.previousHeap = thisHeap;
+            currentHeap.nextHeap = otherHeap;
+            otherHeap.previousHeap = currentHeap;
         }
 
         // Next we combine heaps of the same rank
-        int currentRank = 1;
         // Reset to start of linked list
-        currentQueue = root;
-        while (currentQueue.nextHeap != null) {
-            if (currentQueue.root.rank == currentQueue.nextHeap.root.rank) {
+        currentHeap = root;
+        while (currentHeap.nextHeap != null) {
+            if (currentHeap.root.rank == currentHeap.nextHeap.root.rank) {
                 // Only merge two trees if there are not 3 of the same kind
-                if (currentQueue.nextHeap.nextHeap == null ||
-                    currentQueue.nextHeap.root.rank != currentQueue.nextHeap.nextHeap.root.rank) {
-                    BinaryHeap newHeap = combine(currentQueue, currentQueue.nextHeap);
-                    newHeap.previousHeap = currentQueue.previousHeap;
-                    currentRank = Math.max(currentRank, newHeap.root.rank);
+                if (currentHeap.nextHeap.nextHeap == null ||
+                    currentHeap.nextHeap.root.rank != currentHeap.nextHeap.nextHeap.root.rank) {
+                    BinaryHeap newHeap = combine(currentHeap, currentHeap.nextHeap);
+                    rank = Math.max(rank, newHeap.root.rank);
                     if (newHeap.previousHeap == null) {
                         root = newHeap;
+                        currentHeap = newHeap;
+                        continue;
                     } else {
-                        currentQueue.nextHeap = newHeap;
+                        currentHeap.nextHeap = newHeap;
                     }
                 }
             // we only need to look at trees smaller than maxRank + 1
             // because all trees with higher rank can only be part of one
             // of the list of heaps.
-            } else if (currentQueue.root.rank > maxRank + 1) {
+            } else if (currentHeap.root.rank > maxRank) {
                 break;
             }
-            currentQueue = currentQueue.nextHeap;
-            rank = Math.max(rank, currentRank);
+            currentHeap = currentHeap.nextHeap;
+            rank = Math.max(rank, maxRank);
         }
 
         queue = root;
         corruptedElements.addAll(other.corruptedElements);
         size += other.size();
-        currentQueue.updateSuffixMin();
-    }
-
-
-    // Yeah, Stringbuilder would have been better. On the other hand, this is only for small testing purposes
-    // and will be removed once the project is finished.
-    public String toString() {
-        String ret = "";
-        for (BinaryHeap heap = queue; heap != null; heap = heap.nextHeap) {
-            ret += heap.root;
-        }
-        return ret;
+        currentHeap.updateSuffixMin();
+        other.reset();
     }
 
     protected class BinaryHeap {
@@ -210,6 +214,7 @@ public class SoftHeap<T> implements SoftPriorityQueue<T>, Meldable<SoftHeap<T>> 
             }
             if (previousHeap != null) {
                 previousHeap.updateSuffixMin();
+            } else {
             }
         }
     }
@@ -230,16 +235,16 @@ public class SoftHeap<T> implements SoftPriorityQueue<T>, Meldable<SoftHeap<T>> 
             if (rank < nodeTargetSize) {
                 size = 1;
             } else {
-                size = (int)Math.ceil(3 * Math.max(leftChild.size, rightChild.size) / 2);
+                size = (int)Math.ceil(3 * Math.max(leftChild.size, rightChild.size) *0.5);
             }
-            nodeElements = new ArrayList<>();
+            nodeElements = new LinkedList<>();
             sift();
         }
 
         public BinaryHeapNode() {
             rank = 1;
             size = 1;
-            nodeElements = new ArrayList<>();
+            nodeElements = new LinkedList<>();
         }
 
         /**
@@ -273,7 +278,8 @@ public class SoftHeap<T> implements SoftPriorityQueue<T>, Meldable<SoftHeap<T>> 
          * @return the number of elements now contained in the list
          */
         public int sift() {
-            while (nodeElements.size() < size / 2 && !isLeaf()) {
+            while (nodeElements.size() < size * 0.5 && !isLeaf()) {
+//            	System.out.println(nodeElements + ", " + leftChild + " : " + rightChild);
                 // At least the left child exists.
                 // Now we check whether the right child exists and
                 // swap both if the key of the rightChild is smaller
@@ -298,10 +304,6 @@ public class SoftHeap<T> implements SoftPriorityQueue<T>, Meldable<SoftHeap<T>> 
                 }
             }
             return nodeElements.size();
-        }
-
-        public String toString() {
-            return String.join("", Collections.nCopies(rank, " ")) + String.format("%s, %s, %s: ", rank, size, key) + nodeElements.stream().map(Object::toString).collect(Collectors.joining("[", ", ","]")) + " -> \n" + leftChild + "\n" + rightChild + "\n";
         }
     }
 }
