@@ -86,7 +86,6 @@ public class SoftHeap<T> implements LossyPriorityQueue<T>, Meldable<SoftHeap<T>>
 
     @Override
     public void insert(T element) {
-    	System.out.println("inserting " + element);
         SoftHeap<T> newHeap = new SoftHeap<T>(errorRate, comparator, element);
         meld(newHeap);
     }
@@ -164,18 +163,13 @@ public class SoftHeap<T> implements LossyPriorityQueue<T>, Meldable<SoftHeap<T>>
 
         // Next we combine heaps of the same rank
         // Reset to start of linked list
-//        System.out.println(root);
         currentHeap = root;
         while (currentHeap.nextHeap != null) {
-//        	System.out.println(root + " " + currentHeap.nextHeap);
             if (currentHeap.root.rank == currentHeap.nextHeap.root.rank) {
                 // Only merge two trees if there are not 3 of the same kind
                 if (currentHeap.nextHeap.nextHeap == null ||
                     currentHeap.nextHeap.root.rank != currentHeap.nextHeap.nextHeap.root.rank) {
-//                	System.out.println("current queue\n" + currentHeap);
                     BinaryHeap newHeap = combine(currentHeap, currentHeap.nextHeap);
-//                    System.out.println("the merged heaps\n" + newHeap);
-//                    newHeap.previousHeap = currentHeap.previousHeap;
                     rank = Math.max(rank, newHeap.root.rank);
                     if (newHeap.previousHeap == null) {
                         root = newHeap;
@@ -202,18 +196,6 @@ public class SoftHeap<T> implements LossyPriorityQueue<T>, Meldable<SoftHeap<T>>
         other.reset();
 
         return this;
-    }
-
-
-    // Yeah, Stringbuilder would have been better. On the other hand, this is only for small testing purposes
-    // and will be removed once the project is finished.
-    public String toString() {
-        String ret = "SoftHeap of rank " + rank + " with size " + size + "\n";
-        for (BinaryHeap heap = queue; heap != null; heap = heap.nextHeap) {
-            ret += "> " + heap.root;
-        }
-        ret += "--";
-        return ret;
     }
 
     protected class BinaryHeap {
@@ -244,10 +226,6 @@ public class SoftHeap<T> implements LossyPriorityQueue<T>, Meldable<SoftHeap<T>>
             } else {
             }
         }
-        
-        public String toString() {
-        	return "<" + sufMin.root.rank + " " + root.toString() + (nextHeap != null ? nextHeap.toString() : "");
-        }
     }
 
     protected class BinaryHeapNode {
@@ -267,7 +245,6 @@ public class SoftHeap<T> implements LossyPriorityQueue<T>, Meldable<SoftHeap<T>>
                 size = 1;
             } else {
                 size = (int)Math.ceil(3 * Math.max(leftChild.size, rightChild.size) *0.5);
-                System.out.println("target size: " + size);
             }
             nodeElements = new LinkedList<>();
             sift();
@@ -310,8 +287,6 @@ public class SoftHeap<T> implements LossyPriorityQueue<T>, Meldable<SoftHeap<T>>
          * @return the number of elements now contained in the list
          */
         public int sift() {
-//        	System.out.println("Sifting");
-//        	System.out.println(this);
             while (nodeElements.size() < size * 0.5 && !isLeaf()) {
 //            	System.out.println(nodeElements + ", " + leftChild + " : " + rightChild);
                 // At least the left child exists.
@@ -337,15 +312,7 @@ public class SoftHeap<T> implements LossyPriorityQueue<T>, Meldable<SoftHeap<T>>
                     rightChild = null;
                 }
             }
-//            System.out.println("Done. Result is\n" + this);
             return nodeElements.size();
-        }
-
-        public String toString() {
-        	String indent = String.join("", Collections.nCopies(rank - 1, " "));
-        	String leftString = "";//leftChild == null ? indent + "x" : leftChild.toString();
-        	String rightString = "";//rightChild == null ? indent + "x" : rightChild.toString();
-            return  indent + String.format(" %s, %s, %s: ", rank, size, key) + nodeElements.stream().map(Object::toString).collect(Collectors.joining(", ", "[", "]")) + " -> \n" + leftString + "\n" + rightString;
         }
     }
 }
