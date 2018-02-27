@@ -65,6 +65,7 @@ public class SoftHeap<T> implements LossyPriorityQueue<T>, Meldable<SoftHeap<T>>
         elements.remove(0);
         if (minHeap.root.size * 0.5 > elements.size()) {
         	// This binary heap does not contain any elements at all
+        	// In order to remove it we need to update all other references properly
         	if (minHeap.root.sift() == 0) {
                 if (minHeap.nextHeap != null) {
                     minHeap.nextHeap.previousHeap = minHeap.previousHeap;
@@ -91,13 +92,16 @@ public class SoftHeap<T> implements LossyPriorityQueue<T>, Meldable<SoftHeap<T>>
     }
 
     private BinaryHeap combine(BinaryHeap first, BinaryHeap second) {
+    	// Create a new Heap with a root node containing both binary heaps
         BinaryHeapNode newRoot = new BinaryHeapNode(first.root, second.root, null, first.root.rank + 1);
         BinaryHeap newHeap = new BinaryHeap(newRoot);
+        // Update all references properly
         if (second.nextHeap != null) {
         	second.nextHeap.previousHeap = newHeap;
         }
         newHeap.previousHeap = first.previousHeap;
         newHeap.nextHeap = second.nextHeap;
+        // Make sure garbage collection can clean those bad boys up
         first.nextHeap = null;
         second.previousHeap = null;
         return newHeap;
@@ -112,6 +116,7 @@ public class SoftHeap<T> implements LossyPriorityQueue<T>, Meldable<SoftHeap<T>>
 
     @Override
     public SoftHeap<T> meld(SoftHeap<T> other) {
+    	// In case this soft heap is empty we just copy the other heap
     	if (this.queue == null) {
     		this.queue = other.queue;
     		this.rank = other.rank;
@@ -134,22 +139,22 @@ public class SoftHeap<T> implements LossyPriorityQueue<T>, Meldable<SoftHeap<T>>
             currentHeap = thisHeap;
             thisHeap = thisHeap.nextHeap;
         }
-        // Keeps track of the root of the linked list of binary heaps
-        BinaryHeap root = currentHeap;
+        queue = currentHeap;
         // Merge as long as we have not reached the end of one of the queues
         while (thisHeap != null && otherHeap != null) {
+        	// Take the heap with smaller rank
+        	// Keep maxRank updated
+        	BinaryHeap smallerHeap;
             if (otherHeap.root.rank < thisHeap.root.rank) {
-                currentHeap.nextHeap = otherHeap;
-                otherHeap.previousHeap = currentHeap;
-                maxRank = Math.max(maxRank, otherHeap.root.rank);
+            	smallerHeap = otherHeap;
                 otherHeap = otherHeap.nextHeap;
             } else {
-                currentHeap.nextHeap = thisHeap;
-                thisHeap.previousHeap = currentHeap;
-                maxRank = Math.max(maxRank, thisHeap.root.rank);
+            	smallerHeap = thisHeap;
                 thisHeap = thisHeap.nextHeap;
             }
-
+            currentHeap.nextHeap = smallerHeap;
+            smallerHeap.previousHeap = currentHeap;
+            maxRank = Math.max(maxRank, smallerHeap.root.rank);
             currentHeap = currentHeap.nextHeap;   
         }
         // Append all the missing binary heaps
@@ -163,16 +168,19 @@ public class SoftHeap<T> implements LossyPriorityQueue<T>, Meldable<SoftHeap<T>>
 
         // Next we combine heaps of the same rank
         // Reset to start of linked list
-        currentHeap = root;
+        currentHeap = queue;
         while (currentHeap.nextHeap != null) {
             if (currentHeap.root.rank == currentHeap.nextHeap.root.rank) {
                 // Only merge two trees if there are not 3 of the same kind
                 if (currentHeap.nextHeap.nextHeap == null ||
                     currentHeap.nextHeap.root.rank != currentHeap.nextHeap.nextHeap.root.rank) {
-                    BinaryHeap newHeap = combine(currentHeap, currentHeap.nextHeap);
+                    
+                	// Combine both heaps into one, update the rank
+                	BinaryHeap newHeap = combine(currentHeap, currentHeap.nextHeap);
                     rank = Math.max(rank, newHeap.root.rank);
+                    // Update the references properly
                     if (newHeap.previousHeap == null) {
-                        root = newHeap;
+                        queue = newHeap;
                         currentHeap = newHeap;
                         continue;
                     } else {
@@ -188,11 +196,11 @@ public class SoftHeap<T> implements LossyPriorityQueue<T>, Meldable<SoftHeap<T>>
             currentHeap = currentHeap.nextHeap;
             rank = Math.max(rank, maxRank);
         }
-
-        queue = root;
+        // Update the set of corrupted elements as well as size and the sufMin pointers
         corruptedElements.addAll(other.corruptedElements);
         size += other.size();
         currentHeap.updateSuffixMin();
+        // Reset the other heap, because it has been destroyed in the merging process
         other.reset();
 
         return this;
