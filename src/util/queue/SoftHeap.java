@@ -5,7 +5,7 @@ import java.util.*;
 public class SoftHeap<T> implements SoftPriorityQueue<T>, Meldable<SoftHeap<T>> {
 
     private final double errorRate;
-    private final int nodeTargetSize;
+    private final int nodeMinRank;
     private BinaryHeap queue;
     private Set<T> corruptedElements;
     private final Comparator<? super T> comparator;
@@ -25,7 +25,7 @@ public class SoftHeap<T> implements SoftPriorityQueue<T>, Meldable<SoftHeap<T>> 
     public SoftHeap(double errorRate, Comparator<? super T> comparator) {
         this.errorRate = errorRate;
         // Cause Java doesn't support computing the logarithm to an arbitrary base...
-        nodeTargetSize = (int)Math.ceil(Math.log(1 / errorRate) / Math.log(2)) + 5;
+        nodeMinRank = (int)Math.ceil(Math.log(1 / errorRate) / Math.log(2)) + 5;
         this.comparator = comparator;
 
     }
@@ -47,28 +47,28 @@ public class SoftHeap<T> implements SoftPriorityQueue<T>, Meldable<SoftHeap<T>> 
 
     @Override
     public T peek() {
-        List<? extends T> elements = queue.sufMin.root.nodeElements;
+        List<? extends T> elements = queue.sufMin.root.elements;
         return elements.get(0);
     }
 
     @Override
     public T pop() {
         BinaryHeap minHeap = queue.sufMin;
-        List<T> elements = minHeap.root.nodeElements;
+        List<T> elements = minHeap.root.elements;
         T element = elements.get(0);
         elements.remove(0);
         if (minHeap.root.size * 0.5 > elements.size()) {
         	// This binary heap does not contain any elements at all
         	// In order to remove it we need to update all other references properly
         	if (minHeap.root.sift() == 0) {
-                if (minHeap.nextHeap != null) {
-                    minHeap.nextHeap.previousHeap = minHeap.previousHeap;
+                if (minHeap.next != null) {
+                    minHeap.next.prev = minHeap.prev;
                 }
-                if (minHeap.previousHeap == null) {
-                    queue = minHeap.nextHeap;
+                if (minHeap.prev == null) {
+                    queue = minHeap.next;
                 } else {
-                    minHeap.previousHeap.nextHeap = minHeap.nextHeap;
-                    minHeap.previousHeap.updateSuffixMin();
+                    minHeap.prev.next = minHeap.next;
+                    minHeap.prev.updateSuffixMin();
                 }
         	} else {
         		minHeap.updateSuffixMin();
@@ -90,18 +90,18 @@ public class SoftHeap<T> implements SoftPriorityQueue<T>, Meldable<SoftHeap<T>> 
         BinaryHeapNode newRoot = new BinaryHeapNode(first.root, second.root, null, first.root.rank + 1);
         BinaryHeap newHeap = new BinaryHeap(newRoot);
         // Update all references properly
-        if (second.nextHeap != null) {
-        	second.nextHeap.previousHeap = newHeap;
+        if (second.next != null) {
+        	second.next.prev = newHeap;
         }
-        newHeap.previousHeap = first.previousHeap;
-        newHeap.nextHeap = second.nextHeap;
+        newHeap.prev = first.prev;
+        newHeap.next = second.next;
         // Make sure garbage collection can clean those bad boys up
-        first.nextHeap = null;
-        second.previousHeap = null;
+        first.next = null;
+        second.prev = null;
         return newHeap;
     }
     
-    public void reset() {
+    public void clear() {
     	this.queue = null;
     	this.size = 0;
     	this.rank = 0;
@@ -116,7 +116,7 @@ public class SoftHeap<T> implements SoftPriorityQueue<T>, Meldable<SoftHeap<T>> 
     		this.rank = other.rank;
     		this.corruptedElements = other.corruptedElements;
     		this.size = other.size;
-    		other.reset();
+    		other.clear();
     		return;
     	}
         BinaryHeap thisHeap = this.queue, otherHeap = other.queue;
@@ -127,10 +127,10 @@ public class SoftHeap<T> implements SoftPriorityQueue<T>, Meldable<SoftHeap<T>> 
         // Decide from which queue to take first
         if(otherHeap.root.rank < thisHeap.root.rank) {
             currentHeap = otherHeap;
-            otherHeap = otherHeap.nextHeap;  
+            otherHeap = otherHeap.next;  
         } else {
             currentHeap = thisHeap;
-            thisHeap = thisHeap.nextHeap;
+            thisHeap = thisHeap.next;
         }
         queue = currentHeap;
         // Merge as long as we have not reached the end of one of the queues
@@ -140,44 +140,44 @@ public class SoftHeap<T> implements SoftPriorityQueue<T>, Meldable<SoftHeap<T>> 
         	BinaryHeap smallerHeap;
             if (otherHeap.root.rank < thisHeap.root.rank) {
             	smallerHeap = otherHeap;
-                otherHeap = otherHeap.nextHeap;
+                otherHeap = otherHeap.next;
             } else {
             	smallerHeap = thisHeap;
-                thisHeap = thisHeap.nextHeap;
+                thisHeap = thisHeap.next;
             }
-            currentHeap.nextHeap = smallerHeap;
-            smallerHeap.previousHeap = currentHeap;
+            currentHeap.next = smallerHeap;
+            smallerHeap.prev = currentHeap;
             maxRank = Math.max(maxRank, smallerHeap.root.rank);
-            currentHeap = currentHeap.nextHeap;   
+            currentHeap = currentHeap.next;   
         }
         // Append all the missing binary heaps
         if (thisHeap != null) {
-            currentHeap.nextHeap = thisHeap;
-            thisHeap.previousHeap = currentHeap;
+            currentHeap.next = thisHeap;
+            thisHeap.prev = currentHeap;
         } else {
-            currentHeap.nextHeap = otherHeap;
-            otherHeap.previousHeap = currentHeap;
+            currentHeap.next = otherHeap;
+            otherHeap.prev = currentHeap;
         }
 
         // Next we combine heaps of the same rank
-        // Reset to start of linked list
+        // clear to start of linked list
         currentHeap = queue;
-        while (currentHeap.nextHeap != null) {
-            if (currentHeap.root.rank == currentHeap.nextHeap.root.rank) {
+        while (currentHeap.next != null) {
+            if (currentHeap.root.rank == currentHeap.next.root.rank) {
                 // Only merge two trees if there are not 3 of the same kind
-                if (currentHeap.nextHeap.nextHeap == null ||
-                    currentHeap.nextHeap.root.rank != currentHeap.nextHeap.nextHeap.root.rank) {
+                if (currentHeap.next.next == null ||
+                    currentHeap.next.root.rank != currentHeap.next.next.root.rank) {
                     
                 	// Combine both heaps into one, update the rank
-                	BinaryHeap newHeap = combine(currentHeap, currentHeap.nextHeap);
+                	BinaryHeap newHeap = combine(currentHeap, currentHeap.next);
                     rank = Math.max(rank, newHeap.root.rank);
                     // Update the references properly
-                    if (newHeap.previousHeap == null) {
+                    if (newHeap.prev == null) {
                         queue = newHeap;
                         currentHeap = newHeap;
                         continue;
                     } else {
-                        currentHeap.nextHeap = newHeap;
+                        currentHeap.next = newHeap;
                     }
                 }
             // we only need to look at trees smaller than maxRank + 1
@@ -186,20 +186,20 @@ public class SoftHeap<T> implements SoftPriorityQueue<T>, Meldable<SoftHeap<T>> 
             } else if (currentHeap.root.rank > maxRank) {
                 break;
             }
-            currentHeap = currentHeap.nextHeap;
+            currentHeap = currentHeap.next;
             rank = Math.max(rank, maxRank);
         }
         // Update the set of corrupted elements as well as size and the sufMin pointers
         corruptedElements.addAll(other.corruptedElements);
         size += other.size();
         currentHeap.updateSuffixMin();
-        // Reset the other heap, because it has been destroyed in the merging process
-        other.reset();
+        // clear the other heap, because it has been destroyed in the merging process
+        other.clear();
     }
 
     protected class BinaryHeap {
         BinaryHeapNode root;
-        BinaryHeap nextHeap, previousHeap;
+        BinaryHeap next, prev;
         BinaryHeap sufMin;
 
         public BinaryHeap() {
@@ -215,13 +215,13 @@ public class SoftHeap<T> implements SoftPriorityQueue<T>, Meldable<SoftHeap<T>> 
          * with the smallest root node. 
          */
         public void updateSuffixMin() {
-            if (nextHeap != null && comparator.compare(root.key, nextHeap.sufMin.root.key) > 0) {
-                sufMin = nextHeap.sufMin;
+            if (next != null && comparator.compare(root.key, next.sufMin.root.key) > 0) {
+                sufMin = next.sufMin;
             } else {
                 sufMin = this;
             }
-            if (previousHeap != null) {
-                previousHeap.updateSuffixMin();
+            if (prev != null) {
+                prev.updateSuffixMin();
             } else {
             }
         }
@@ -229,7 +229,7 @@ public class SoftHeap<T> implements SoftPriorityQueue<T>, Meldable<SoftHeap<T>> 
 
     protected class BinaryHeapNode {
         BinaryHeapNode rightChild, leftChild;
-        List<T> nodeElements;
+        List<T> elements;
         T key;
         final int rank;
         final int size;
@@ -240,19 +240,19 @@ public class SoftHeap<T> implements SoftPriorityQueue<T>, Meldable<SoftHeap<T>> 
             this.rank = rank;
             this.rightChild = rightChild;
             this.leftChild = leftChild;
-            if (rank < nodeTargetSize) {
+            if (rank < nodeMinRank) {
                 size = 1;
             } else {
                 size = (int)Math.ceil(3 * Math.max(leftChild.size, rightChild.size) *0.5);
             }
-            nodeElements = new LinkedList<>();
+            elements = new LinkedList<>();
             sift();
         }
 
         public BinaryHeapNode() {
             rank = 1;
             size = 1;
-            nodeElements = new LinkedList<>();
+            elements = new LinkedList<>();
         }
 
         /**
@@ -266,7 +266,7 @@ public class SoftHeap<T> implements SoftPriorityQueue<T>, Meldable<SoftHeap<T>> 
             } else if (comparator.compare(element, key) > 0) {
                 throw new IllegalArgumentException(String.format("element %s is too large for %s", element, key));
             }
-            nodeElements.add(element);
+            elements.add(element);
         }
 
         /**
@@ -281,13 +281,13 @@ public class SoftHeap<T> implements SoftPriorityQueue<T>, Meldable<SoftHeap<T>> 
 
         /**
          * Replenishes the elements associated with the given key
-         * if the amount of elements in the List {@link nodeElements}
+         * if the amount of elements in the list
          * has dropped below size / 2.
          * @return the number of elements now contained in the list
          */
         public int sift() {
-            while (nodeElements.size() < size * 0.5 && !isLeaf()) {
-//            	System.out.println(nodeElements + ", " + leftChild + " : " + rightChild);
+            while (elements.size() < size * 0.5 && !isLeaf()) {
+//            	System.out.println(elements + ", " + leftChild + " : " + rightChild);
                 // At least the left child exists.
                 // Now we check whether the right child exists and
                 // swap both if the key of the rightChild is smaller
@@ -299,11 +299,11 @@ public class SoftHeap<T> implements SoftPriorityQueue<T>, Meldable<SoftHeap<T>> 
                     }
                 }
                 // Update the set keeping track of the corrupted elements
-                corruptedElements.addAll(leftChild.nodeElements);
+                corruptedElements.addAll(leftChild.elements);
                 // Append all elements from the child node
                 key = leftChild.key;
-                nodeElements.addAll(leftChild.nodeElements);
-                leftChild.nodeElements.clear();
+                elements.addAll(leftChild.elements);
+                leftChild.elements.clear();
                 
                 // Recurse and delete the child if it appears to be empty
                 if (leftChild.sift() == 0) {
@@ -311,7 +311,7 @@ public class SoftHeap<T> implements SoftPriorityQueue<T>, Meldable<SoftHeap<T>> 
                     rightChild = null;
                 }
             }
-            return nodeElements.size();
+            return elements.size();
         }
     }
 }
