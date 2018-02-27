@@ -3,7 +3,7 @@ package mst;
 import util.disjointset.DisjointSet;
 import util.disjointset.OptimalUnionFind;
 import util.graph.EdgeList;
-import util.graph.WeightedEdge;
+import util.graph.edge.WeightedEdge;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -17,7 +17,7 @@ public final class KruskalMST {
         Collections.sort(sorted);
 
         DisjointSet ds = new OptimalUnionFind(vertices);
-        EdgeList<WeightedEdge> result = new EdgeList();
+        EdgeList<WeightedEdge> result = new EdgeList<>();
 
         for (WeightedEdge e : sorted) {
             if (ds.find(e.from()) == ds.find(e.to()))

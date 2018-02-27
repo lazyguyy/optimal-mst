@@ -1,5 +1,6 @@
 package util.graph;
 
+import util.graph.edge.DirectedEdge;
 import util.queue.Meldable;
 
 import java.util.Iterator;
@@ -16,34 +17,25 @@ public final class EdgeList<E extends DirectedEdge<E>> implements Meldable<EdgeL
 
     public EdgeList() {}
 
-    public EdgeList(E edge) {
-        append(edge);
-    }
-
     public EdgeList(Iterable<? extends E> other) {
         other.forEach(this::append);
     }
 
     @Override
-    public EdgeList<E> meld(final EdgeList<E> other) {
+    public void meld(final EdgeList<E> other) {
         if (other == null)
             throw new NullPointerException("Attempting to meld null.");
-
-        EdgeList<E> union = new EdgeList<>();
-
-        union.first = size > 0 ? first : other.first;
-        union.last = other.size > 0 ? other.last : last;
 
         if (last != null)
             last.next = other.first;
         if (other.first != null)
             other.first.prev = this.last;
 
-        union.size = size + other.size;
+        first = size > 0 ? first : other.first;
+        last = other.size > 0 ? other.last : last;
 
-        clear();
+        size += other.size;
         other.clear();
-        return union;
     }
 
     public int size() {
@@ -102,7 +94,7 @@ public final class EdgeList<E extends DirectedEdge<E>> implements Meldable<EdgeL
     public String toString() {
         return stream()
                 .map(E::toString)
-                .collect(java.util.stream.Collectors.joining("\n  ", "[", "]"));
+                .collect(java.util.stream.Collectors.joining(",\n  ", "[", "]"));
     }
 
     @Override
@@ -111,7 +103,7 @@ public final class EdgeList<E extends DirectedEdge<E>> implements Meldable<EdgeL
     }
 
     private static class Itr<E extends DirectedEdge<E>> implements Iterator<E> {
-        Node<E> current;
+        private Node<E> current;
 
         Itr(EdgeList<E> list) {
             current = list.first;

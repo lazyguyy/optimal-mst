@@ -1,6 +1,8 @@
 package mst;
 
 import util.graph.*;
+import util.graph.edge.ContractedEdge;
+import util.graph.edge.WeightedEdge;
 import util.queue.ExtendedPriorityQueue;
 import util.queue.KAryHeap;
 
@@ -33,13 +35,14 @@ public final class FredmanTarjanMST {
         // TODO use fibonacci heaps
         ExtendedPriorityQueue<Integer> queue = new KAryHeap<>(2, Comparator.comparingDouble(i -> distances[i]));
 
+        long[] ids = new long[vertices];
         for (int i = 0; i < vertices; i++)
-            queue.insert(i);
+            ids[i] = queue.insertWithId(i);
 
         // calculate upper bound for component size
         int exp = 2 * edgeCount / vertices;
         // avoid overflows
-        exp = Math.min(63, exp);
+        exp = Math.min(62, exp);
         long componentMax = 1 << exp;
 
         int[] discoveredInIteration = new int[vertices];
@@ -75,7 +78,7 @@ public final class FredmanTarjanMST {
                     if (discoveredInIteration[e.to()] == -1 && distances[e.to()] > e.weight()) {
                         distances[e.to()] = e.weight();
                         predecessorEdge[e.to()] = e;
-                        queue.decrease(e.to());
+                        queue.decrease(ids[e.to()]);
                     }
                 }
             }
@@ -102,6 +105,7 @@ public final class FredmanTarjanMST {
         Graphs.ContractedWrapper contracted = Graphs.contract(vertices, forestEdges, edges);
 
         // and recurse on the contracted graph
-        return recurse(contracted.size, contracted.edges).meld(markedEdges);
+        markedEdges.meld(recurse(contracted.size, contracted.edges));
+        return markedEdges;
     }
 }

@@ -1,8 +1,8 @@
 package test;
 
 import mst.*;
-import mst.MinimumSpanningTreeAlgorithm;
-import util.graph.WeightedEdge;
+import util.graph.MinimumSpanningTreeAlgorithm;
+import util.graph.edge.WeightedEdge;
 
 import java.util.Arrays;
 

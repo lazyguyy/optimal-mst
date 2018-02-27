@@ -3,13 +3,12 @@ package util.queue;
 import java.util.List;
 import java.util.Set;
 import java.util.Comparator;
-import java.util.LinkedList;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.stream.Collectors;
 import java.util.Collections;
 
-public class SoftHeap<T> implements LossyPriorityQueue<T>, Meldable<SoftHeap<T>> {
+public class SoftHeap<T> implements SoftPriorityQueue<T>, Meldable<SoftHeap<T>> {
 
     private final double errorRate;
     private final int nodeTargetSize;
@@ -102,7 +101,7 @@ public class SoftHeap<T> implements LossyPriorityQueue<T>, Meldable<SoftHeap<T>>
     }
 
     @Override
-    public SoftHeap<T> meld(SoftHeap<T> other) {
+    public void meld(SoftHeap<T> other) {
         BinaryHeap thisHeap = this.queue, otherHeap = other.queue;
         BinaryHeap currentQueue;
         int maxRank = 1; 
@@ -173,8 +172,6 @@ public class SoftHeap<T> implements LossyPriorityQueue<T>, Meldable<SoftHeap<T>>
         corruptedElements.addAll(other.corruptedElements);
         size += other.size();
         currentQueue.updateSuffixMin();
-
-        return this;
     }
 
 

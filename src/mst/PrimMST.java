@@ -2,8 +2,7 @@ package mst;
 
 import util.graph.AdjacencyList;
 import util.graph.EdgeList;
-import util.graph.Graphs;
-import util.graph.WeightedEdge;
+import util.graph.edge.WeightedEdge;
 import util.queue.ExtendedPriorityQueue;
 import util.queue.KAryHeap;
 
@@ -29,8 +28,9 @@ public final class PrimMST {
         distances[0] = 0;
         lightest[0] = null;
 
+        long[] ids = new long[vertices];
         for (int i = 0; i < vertices; i++)
-            queue.insert(i);
+            ids[i] = queue.insertWithId(i);
 
         while (!queue.empty()) {
             int vertex = queue.pop();
@@ -40,7 +40,7 @@ public final class PrimMST {
                 if (!visited[e.to()] && distances[e.to()] > e.weight()) {
                     distances[e.to()] = e.weight();
                     lightest[e.to()] = e;
-                    queue.decrease(e.to());
+                    queue.decrease(ids[e.to()]);
                 }
             }
         }

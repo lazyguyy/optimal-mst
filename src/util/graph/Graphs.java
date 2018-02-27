@@ -1,51 +1,59 @@
 package util.graph;
 
-import java.util.ArrayDeque;
-import java.util.Arrays;
+import util.graph.edge.*;
+
+import java.util.*;
+import java.util.stream.Collectors;
 
 public final class Graphs {
 
-    private Graphs() {}
+    public static <E extends DirectedEdge<E>> int[] componentMapping(int vertices, Iterable<E> edges) {
+        return componentMapping(vertices, components(vertices, edges));
+    }
 
-    public static <E extends DirectedEdge<E>> int[] components(int vertices, Iterable<E> edges) {
+    public static int[] componentMapping(int vertices, List<List<Integer>> components) {
+
+        int componentMapping[] = new int[vertices];
+
+        for (int c = 0; c < components.size(); c++)
+            for (int vertex : components.get(c))
+                componentMapping[vertex] = c;
+
+        return componentMapping;
+    }
+
+    public static <E extends DirectedEdge<E>> List<List<Integer>> components(int vertices, Iterable<E> edges) {
 
         // generate adjacency list
         AdjacencyList<E> adjacency = AdjacencyList.of(vertices, edges);
 
-        // initialize components
-        int component[] = new int[vertices];
-        for (int v = 0; v < vertices; v++)
-            component[v] = -1;
+        ArrayList<List<Integer>> components = new ArrayList<>();
+        boolean[] visited = new boolean[vertices];
 
-        int componentCount = 0;
         ArrayDeque<Integer> stack = new ArrayDeque<>();
         for (int v = 0; v < vertices; v++) {
             // if we discover a new component ...
-            if (component[v] != -1)
+            if (visited[v])
                 continue;
 
+            ArrayList<Integer> comp = new ArrayList<>();
             // ... perform dfs on component
             stack.push(v);
             while (!stack.isEmpty()) {
                 int neighbor = stack.pop();
                 // set component id for every connected vertex
-                component[neighbor] = componentCount;
+                comp.add(neighbor);
+                visited[neighbor] = true;
                 for (E e : adjacency.get(neighbor))
-                    if (component[e.to()] == -1)
+                    if (!visited[e.to()])
                         stack.push(e.to());
             }
-            componentCount++;
+            components.add(comp);
         }
-
-        return component;
+        return components;
     }
 
-    public static int componentCount(int[] components) {
-        return Arrays.stream(components).max().orElse(-1) + 1;
-    }
-
-    public static <E extends DirectedEdge<E>> EdgeList<E> removeDuplicates(int vertices, Iterable<E> edges) {
-
+    public static <E extends DirectedEdge<E>> EdgeList<E> sortEdges(int vertices, Iterable<E> edges) {
         AdjacencyList<E> firstPass = new AdjacencyList<>(vertices);
         AdjacencyList<E> secondPass = new AdjacencyList<>(vertices);
 
@@ -62,38 +70,68 @@ public final class Graphs {
                 secondPass.append(e.from(), e);
 
         EdgeList<E> result = new EdgeList<>();
-        for (int v = 0; v < vertices; v++) {
-            E lightest = null;
-            // find lightest edge from v to all connected vertices
-            for (E e : secondPass.get(v)) {
-                // skip self-loops
-                if (e.to() == v)
-                    continue;
-                // first iteration: initialize candidate for lightest edge
-                if (lightest == null)
-                    lightest = e;
-                // different target: save current best
-                if (lightest.to() != e.to()) {
-                    result.append(lightest);
-                    lightest = e;
-                }
-                // update lightest if we find a better candidate
-                if (lightest.weight() > e.weight())
-                    lightest = e;
-            }
-            // append last result
-            if (lightest != null)
-                result.append(lightest);
-        }
+        for (int v = 0; v < vertices; v++)
+            result.meld(secondPass.get(v));
         return result;
+    }
+
+    public static <E extends DirectedEdge<E>> EdgeList<E> removeDuplicates(int vertices, Iterable<E> edges) {
+
+        EdgeList<E> sorted = sortEdges(vertices, edges);
+        EdgeList<E> result = new EdgeList<>();
+
+        E lightest = null;
+        // find lightest edge between all pairs of vertices
+        for (E e : sorted) {
+            // skip self-loops
+            if (e.from() == e.to())
+                continue;
+            // first iteration: initialize candidate for lightest edge
+            if (lightest == null)
+                lightest = e;
+            // different endpoint: save current best
+            if (lightest.from() != e.from() || lightest.to() != e.to()) {
+                result.append(lightest);
+                lightest = e;
+            }
+            // update lightest if we find a better candidate
+            if (lightest.weight() > e.weight())
+                lightest = e;
+        }
+        // append last result
+        if (lightest != null)
+            result.append(lightest);
+
+        return result;
+    }
+
+    public static <E extends DirectedEdge<E> & Comparable<? super E>>
+            Set<E> lightestEdgePerVertex(int vertices, Iterable<E> edges) {
+
+        ArrayList<E> lightest = new ArrayList<>(vertices);
+        for (int i = 0; i < vertices; i++)
+            lightest.add(null);
+
+        // store lightest edge for each vertex
+        for (E ce : edges) {
+            if (lightest.get(ce.from()) == null || lightest.get(ce.from()).compareTo(ce) > 0)
+                lightest.set(ce.from(), ce);
+            if (lightest.get(ce.to()) == null || lightest.get(ce.to()).compareTo(ce) > 0)
+                lightest.set(ce.to(), ce);
+        }
+
+        // remove nulls and duplicates
+        return lightest.stream().filter(Objects::nonNull).collect(Collectors.toCollection(HashSet::new));
     }
 
     public static ContractedWrapper contract(int vertices, Iterable<ContractedEdge> span, Iterable<ContractedEdge> edges) {
 
         // find connected components
-        int[] component = Graphs.components(vertices, span);
+        List<List<Integer>> components = components(vertices, span);
+        // obtain component mapping
+        int[] component = componentMapping(vertices, components);
         // find number of components
-        int componentCount = Graphs.componentCount(component);
+        int componentCount = components.size();
 
         // contract components
         EdgeList<ContractedEdge> contracted = new EdgeList<>();

@@ -1,7 +1,6 @@
 package util.queue;
 
-// TODO rename to "corrupting"
-public interface LossyPriorityQueue<T> {
+public interface SoftPriorityQueue<T> {
     T peek();
     T pop();
     Iterable<T> corrupted();

@@ -1,4 +1,4 @@
-package util.graph;
+package util.graph.edge;
 
 import java.util.Objects;
 

@@ -2,7 +2,7 @@ package test;
 
 import util.queue.KAryHeap;
 import util.queue.PriorityQueue;
-import util.queue.LossyPriorityQueue;
+import util.queue.SoftPriorityQueue;
 import util.queue.SoftHeap;
 
 public class HeapTest {
@@ -16,7 +16,7 @@ public class HeapTest {
         System.out.println(pq.pop());
         System.out.println(pq.pop());
 
-        LossyPriorityQueue<Integer> lpq = SoftHeap.naturallyOrdered(0.25);
+        SoftPriorityQueue<Integer> lpq = SoftHeap.naturallyOrdered(0.25);
 
         int[] elements = {1,3,2,5,6,0,-1,10};
         for (int i : elements) {

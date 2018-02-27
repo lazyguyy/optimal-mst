@@ -1,8 +1,12 @@
 package util.graph;
 
+import util.graph.edge.DirectedEdge;
+
 import java.util.ArrayList;
 
 public final class AdjacencyList<E extends DirectedEdge<E>> extends ArrayList<EdgeList<E>> {
+
+    // TODO make immutable
 
     public AdjacencyList(int count) {
         super(count);
