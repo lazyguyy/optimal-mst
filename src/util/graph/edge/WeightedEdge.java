@@ -1,15 +1,11 @@
-package util.graph;
+package util.graph.edge;
 
 import java.util.Objects;
 
-public class WeightedEdge implements DirectedEdge<WeightedEdge>, Comparable<WeightedEdge> {
-    protected final int from;
-    protected final int to;
-    protected final double weight;
-
-    public WeightedEdge(final int from, final int to) {
-        this(from, to, 1);
-    }
+public final class WeightedEdge implements DirectedEdge<WeightedEdge>, Comparable<WeightedEdge> {
+    private final int from;
+    private final int to;
+    private final double weight;
 
     public WeightedEdge(final int from, final int to, final double weight) {
         this.from = from;
@@ -29,6 +25,7 @@ public class WeightedEdge implements DirectedEdge<WeightedEdge>, Comparable<Weig
         return new WeightedEdge(to, from, weight);
     }
 
+    @Override
     public double weight() {
         return weight;
     }
@@ -53,6 +50,13 @@ public class WeightedEdge implements DirectedEdge<WeightedEdge>, Comparable<Weig
 
     @Override
     public int compareTo(final WeightedEdge other) {
-        return Double.compare(uniqueWeight(), other.uniqueWeight());
+        int byWeight = Double.compare(weight, other.weight);
+        if (byWeight != 0)
+            return byWeight;
+        int byFrom = Integer.compare(from, other.from);
+        if (byFrom != 0)
+            return byFrom;
+        return Integer.compare(to, other.to);
     }
+
 }

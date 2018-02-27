@@ -1,11 +1,8 @@
-package util.graph;
+package util.graph.edge;
 
 public interface DirectedEdge<R extends DirectedEdge> {
     int from();
     int to();
     double weight();
-    default double uniqueWeight() {
-        return weight();
-    }
     R reversed();
 }

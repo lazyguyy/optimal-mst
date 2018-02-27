@@ -1,15 +1,21 @@
 package util.queue;
 
-/*
-public class FibonacciHeap<T> implements LossyPriorityQueue<T> {
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
 
-    public FibonacciHeap() {
+public class FibonacciHeap<T> implements ExtendedPriorityQueue<T> {
 
+    private final Map<Long, Integer> idToNode;
+    private final Comparator<? super T> comparator;
+
+    private FibonacciHeap(final Comparator<? super T> c) {
+        comparator = c;
+        idToNode = new HashMap<>();
     }
 
-    @Override
-    public T pop() {
-        return null;
+    public static <S extends Comparable<? super S>> FibonacciHeap<S> naturallyOrdered() {
+        return new FibonacciHeap<>(S::compareTo);
     }
 
     @Override
@@ -18,7 +24,13 @@ public class FibonacciHeap<T> implements LossyPriorityQueue<T> {
     }
 
     @Override
-    public void insert(T value) {
+    public void insert(T element) {
+
+    }
+
+    @Override
+    public long insertWithId(T element) {
+        return 0;
     }
 
     @Override
@@ -26,11 +38,17 @@ public class FibonacciHeap<T> implements LossyPriorityQueue<T> {
         return 0;
     }
 
-	@Override
-	public Iterable<T> corrupted() {
-		return null;
-	}
+    @Override
+    public T pop() {
+        return null;
+    }
 
+    @Override
+    public void decrease(long id) {
 
+    }
+
+    private static final class Node<E> {
+
+    }
 }
-*/

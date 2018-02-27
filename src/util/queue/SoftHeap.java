@@ -1,14 +1,8 @@
 package util.queue;
 
-import java.util.List;
-import java.util.Set;
-import java.util.Comparator;
-import java.util.LinkedList;
-import java.util.HashSet;
-import java.util.stream.Collectors;
-import java.util.Collections;
+import java.util.*;
 
-public class SoftHeap<T> implements LossyPriorityQueue<T>, Meldable<SoftHeap<T>> {
+public class SoftHeap<T> implements SoftPriorityQueue<T>, Meldable<SoftHeap<T>> {
 
     private final double errorRate;
     private final int nodeTargetSize;
@@ -115,16 +109,15 @@ public class SoftHeap<T> implements LossyPriorityQueue<T>, Meldable<SoftHeap<T>>
     }
 
     @Override
-    public SoftHeap<T> meld(SoftHeap<T> other) {
-    	// In case this soft heap is empty we just copy the other heap
+    public void meld(SoftHeap<T> other) {
+	// In case this soft heap is empty we just copy the other heap
     	if (this.queue == null) {
     		this.queue = other.queue;
     		this.rank = other.rank;
     		this.corruptedElements = other.corruptedElements;
     		this.size = other.size;
-    		queue.updateSuffixMin();
     		other.reset();
-    		return this;
+    		return;
     	}
         BinaryHeap thisHeap = this.queue, otherHeap = other.queue;
         BinaryHeap currentHeap;
@@ -202,8 +195,6 @@ public class SoftHeap<T> implements LossyPriorityQueue<T>, Meldable<SoftHeap<T>>
         currentHeap.updateSuffixMin();
         // Reset the other heap, because it has been destroyed in the merging process
         other.reset();
-
-        return this;
     }
 
     protected class BinaryHeap {

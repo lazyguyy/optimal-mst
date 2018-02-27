@@ -1,5 +1,10 @@
 package util.queue;
 
 public interface Meldable<T> {
-    Meldable<T> meld(T other);
+    /**
+     * Destructively melds other into this.
+     *
+     * @param other the element to meld into this
+     */
+    void meld(T other);
 }
