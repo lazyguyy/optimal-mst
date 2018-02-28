@@ -4,7 +4,7 @@ import util.graph.AdjacencyList;
 import util.graph.EdgeList;
 import util.graph.edge.WeightedEdge;
 import util.queue.ExtendedPriorityQueue;
-import util.queue.KAryHeap;
+import util.queue.FibonacciHeap;
 
 import java.util.Arrays;
 import java.util.Comparator;
@@ -22,8 +22,7 @@ public final class PrimMST {
 
         AdjacencyList<WeightedEdge> adjacency = AdjacencyList.of(vertices, edges);
 
-        // TODO use fib heaps
-        ExtendedPriorityQueue<Integer> queue = new KAryHeap<>(2, Comparator.comparingDouble(i -> distances[i]));
+        ExtendedPriorityQueue<Integer> queue = new FibonacciHeap<>(Comparator.comparingDouble(i -> distances[i]));
 
         distances[0] = 0;
         lightest[0] = null;

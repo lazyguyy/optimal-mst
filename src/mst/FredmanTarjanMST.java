@@ -4,7 +4,7 @@ import util.graph.*;
 import util.graph.edge.ContractedEdge;
 import util.graph.edge.WeightedEdge;
 import util.queue.ExtendedPriorityQueue;
-import util.queue.KAryHeap;
+import util.queue.FibonacciHeap;
 
 import java.util.*;
 
@@ -32,8 +32,7 @@ public final class FredmanTarjanMST {
 
         int edgeCount = edges.size();
 
-        // TODO use fibonacci heaps
-        ExtendedPriorityQueue<Integer> queue = new KAryHeap<>(2, Comparator.comparingDouble(i -> distances[i]));
+        ExtendedPriorityQueue<Integer> queue = new FibonacciHeap<>(Comparator.comparingDouble(i -> distances[i]));
 
         long[] ids = new long[vertices];
         for (int i = 0; i < vertices; i++)

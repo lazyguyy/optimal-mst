@@ -25,6 +25,6 @@ public class MSTTest {
         };
 
         for (MinimumSpanningTreeAlgorithm algorithm : algorithms)
-            System.out.println(algorithm.findMST(6, Arrays.asList(edges)));
+            System.out.println(algorithm.findMST(6, Arrays.asList(edges)).weight());
     }
 }

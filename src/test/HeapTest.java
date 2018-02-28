@@ -1,21 +1,40 @@
 package test;
 
-import util.queue.KAryHeap;
+import util.queue.*;
+
+import java.util.ArrayList;
 import java.util.Arrays;
-import util.queue.PriorityQueue;
-import util.queue.SoftPriorityQueue;
-import util.queue.SoftHeap;
+import java.util.Comparator;
 
 public class HeapTest {
 
     public static void main(String[] args) {
-        PriorityQueue<Integer> pq = KAryHeap.naturallyOrdered(2);
-        pq.insert(5);
-        pq.insert(7);
-        pq.insert(2);
-//        System.out.println(pq.pop());
-//        System.out.println(pq.pop());
-//        System.out.println(pq.pop());
+        PriorityQueue<Integer> q = BinaryHeap.naturallyOrdered();
+        for (int i : new int[] {5, 3, 7, 1, 9, 2, 10}) {
+            q.insert(i);
+        }
+        while (!q.empty()) {
+            // System.out.println(queue);
+            System.out.print(q.pop() + " ");
+        }
+        System.out.println();
+
+        int[] vals = {100, 5, 3, 7, 1, 9, 2, 10};
+        ExtendedPriorityQueue<Integer> queue = new FibonacciHeap<>(Comparator.comparingDouble(i -> vals[i]));
+        for (int i = 1; i < vals.length; i++) {
+            queue.insert(i);
+        }
+        long handle = queue.insertWithId(0);
+        // change 100 to 0
+        vals[0] = 0;
+        queue.decrease(handle);
+
+        while (!queue.empty()) {
+            // System.out.println(queue);
+            int elem = queue.pop();
+            System.out.print(vals[elem] + " ");
+        }
+        System.out.println();
 
         SoftPriorityQueue<Integer> lpq = SoftHeap.naturallyOrdered(0.25);
 
@@ -26,6 +45,6 @@ public class HeapTest {
         for (int i = 0; i < elements.length; i++) {
         	elements[i] = lpq.pop();
         }
-        System.out.println(Arrays.toString(elements));
+        //System.out.println(Arrays.toString(elements));
     }
 }

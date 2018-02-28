@@ -9,7 +9,7 @@ import java.util.*;
 
 public final class BoruvkaMST {
 
-    public static EdgeList compute(int vertices, Iterable<WeightedEdge> edges) {
+    public static EdgeList<WeightedEdge> compute(int vertices, Iterable<WeightedEdge> edges) {
         ArrayList<ContractedEdge> wrapper = new ArrayList<>();
         for (WeightedEdge e : edges)
             wrapper.add(new ContractedEdge(e));

@@ -2,10 +2,23 @@ package util.decision;
 
 public class DecisionTree {
 
-    // for all r = 1..logloglog n
-    //   for all graphs g with r vertices
-    //     for all d = 1..r*r
-    //       for all trees t with depth d
-    //         for all permutations on g's edges
+    // internally, we represent a decision tree (quite similar to a binary heap) by an array of nodes
+    // each describing a comparison between two edges
+    private Comparison[] comparisons;
 
+    public DecisionTree(int depth) {
+
+    }
+
+    int bucket(/*EdgePermutation permutation*/) {
+
+        return 0;
+    }
+
+
+    // represents a comparison between edges
+    private class Comparison {
+        int firstEdge;
+        int secondEdge;
+    }
 }
