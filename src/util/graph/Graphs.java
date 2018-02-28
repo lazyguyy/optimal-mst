@@ -110,11 +110,11 @@ public final class Graphs {
      * @param edges The Iterable whose vertices shall be renamed
      * @return Returns an AdjacencyList of renamed Edges
      */
-    public static AdjacencyList<ContractedEdge> renameVertices(Iterable<ContractedEdge> edges) {
+    public static <E extends DirectedEdge<E> & Comparable<E>> AdjacencyList<RenamedEdge<E>> renameVertices(Iterable<E> edges) {
         Map<Integer, Integer> renamedVertices = new HashMap<>();
-        List<ContractedEdge> renamedEdges = new ArrayList<>();
+        List<RenamedEdge<E>> renamedEdges = new ArrayList<>();
         int vertex = 0;
-        for (ContractedEdge edge : edges) {
+        for (E edge : edges) {
             int from = edge.from(), to = edge.to();
             if (!renamedVertices.containsKey(from)) {
                 renamedVertices.put(from, vertex);
@@ -124,7 +124,7 @@ public final class Graphs {
                 renamedVertices.put(to, vertex);
                 vertex++;
             }
-            renamedEdges.add(new ContractedEdge(renamedVertices.get(from), renamedVertices.get(to), edge.original));
+            renamedEdges.add(new RenamedEdge<E>(renamedVertices.get(from), renamedVertices.get(to), edge));
         }
         return AdjacencyList.of(vertex, renamedEdges);
     }  
