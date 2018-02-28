@@ -27,7 +27,7 @@ public class PettieRamachandranMST {
     private static EdgeList<WeightedEdge> recurse(int vertices, EdgeList<ContractedEdge> edges) {
         if (edges.size() == 0)
             return new EdgeList<WeightedEdge>();
-        int maxsize = (int)(Math.log(Math.log(Math.log(vertices)/Math.log(2))/Math.log(2))/Math.log(2));
+        int maxsize = (int)(Math.log(Math.log(Math.log(vertices)/Math.log(2))/Math.log(2))/Math.log(2)) + 1;
         PartitionWrapper partitions = partition(vertices, AdjacencyList.of(vertices, edges), maxsize, 0.125);
         
         EdgeList<RenamedEdge<ContractedEdge>> partitionMSFWithRenamedEdges = new EdgeList<>();
