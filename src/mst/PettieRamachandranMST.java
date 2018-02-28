@@ -5,6 +5,8 @@ import util.graph.Graphs;
 import util.graph.AdjacencyList;
 import util.graph.edge.WeightedEdge;
 import util.graph.edge.ContractedEdge;
+import util.graph.edge.RenamedEdge;
+import util.graph.EdgeList;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Set;
@@ -12,11 +14,77 @@ import java.util.HashSet;
 
 public class PettieRamachandranMST {
 
-    private PartitionWrapper partition(int vertices, AdjacencyList<ContractedEdge> edges, int maxsize, double errorRate) {
+    public static EdgeList<WeightedEdge> compute(int vertices, Iterable<WeightedEdge> edges) {
+        EdgeList<ContractedEdge> wrapper = new EdgeList<>();
+        for (WeightedEdge edge : edges) {
+            wrapper.append(new ContractedEdge(edge));
+        }
+
+        return recurse(vertices, wrapper);
+
+    }
+
+    private static EdgeList<WeightedEdge> recurse(int vertices, EdgeList<ContractedEdge> edges) {
+        if (edges.size() == 0)
+            return new EdgeList<WeightedEdge>();
+        int maxsize = (int)(Math.log(Math.log(Math.log(vertices)/Math.log(2))/Math.log(2))/Math.log(2));
+        PartitionWrapper partitions = partition(vertices, AdjacencyList.of(vertices, edges), maxsize, 0.125);
+        
+        EdgeList<RenamedEdge<ContractedEdge>> partitionMSFWithRenamedEdges = new EdgeList<>();
+
+        for (AdjacencyList<RenamedEdge<ContractedEdge>> partition : partitions.subGraphs) {
+            //partitionMSF.meld(DecisionTree.optimalMST(partition));
+        }
+
+        EdgeList<ContractedEdge> partitionMSF = new EdgeList<>();
+
+        for (RenamedEdge<ContractedEdge> edge : partitionMSFWithRenamedEdges) {
+            partitionMSF.append(edge.original);
+        }
+
+        Graphs.ContractedWrapper wrapper = Graphs.contract(vertices, partitionMSF, edges);
+
+        // Remove corrupted Edges
+        EdgeList<WeightedEdge> denseCaseEdges = new EdgeList<>();
+        for (ContractedEdge e : wrapper.edges) {
+            if (!partitions.corruptedEdges.contains(e)) {
+                denseCaseEdges.append(e.original);
+            }
+        }
+
+        EdgeList<WeightedEdge> denseCaseMST = FredmanTarjanMST.compute(wrapper.size, denseCaseEdges);
+
+        EdgeList<ContractedEdge> reducedEdges = new EdgeList<>();
+        denseCaseMST.stream().map(e -> new ContractedEdge(e)).forEach(reducedEdges::append);
+        partitions.corruptedEdges.forEach(reducedEdges::append);
+        partitionMSF.forEach(reducedEdges::append);
+        
+        // Two Steps of Boruvka's algorithm
+        EdgeList<WeightedEdge> boruvkaEdges = new EdgeList<>();
+
+        Set<ContractedEdge> forestEdges = Graphs.lightestEdgePerVertex(vertices, reducedEdges);
+        Graphs.ContractedWrapper contracted = Graphs.contract(vertices, forestEdges, reducedEdges);
+
+        // extract original edges
+        forestEdges.stream().map(e -> e.original).forEach(boruvkaEdges::append);
+
+        forestEdges = Graphs.lightestEdgePerVertex(contracted.size, contracted.edges);
+        contracted = Graphs.contract(contracted.size, forestEdges, contracted.edges);
+
+        // extract original edges
+        forestEdges.stream().map(e -> e.original).forEach(boruvkaEdges::append);
+
+        EdgeList<WeightedEdge> mst = recurse(contracted.size, contracted.edges);
+        mst.meld(boruvkaEdges);
+        return mst;       
+
+    }
+
+    private static PartitionWrapper partition(int vertices, AdjacencyList<ContractedEdge> edges, int maxsize, double errorRate) {
         boolean[] dead = new boolean[vertices];
         Set<ContractedEdge> corruptedEdges = new HashSet<>();
         SoftHeap<ContractedEdge> softHeap = SoftHeap.naturallyOrdered(errorRate);
-        List<AdjacencyList<ContractedEdge>> partitions = new ArrayList<>();;
+        List<AdjacencyList<RenamedEdge<ContractedEdge>>> partitions = new ArrayList<>();;
         // For each vertex find a partition that they are part of
         for (int current = 0; current < vertices; ++current) {
             if (dead[current])
@@ -67,11 +135,11 @@ public class PettieRamachandranMST {
         return new PartitionWrapper(partitions, corruptedEdges);
     }
 
-    private final class PartitionWrapper {
-        final List<AdjacencyList<ContractedEdge>> subGraphs;
+    private static final class PartitionWrapper {
+        final List<AdjacencyList<RenamedEdge<ContractedEdge>>> subGraphs;
         final Set<ContractedEdge> corruptedEdges;
 
-        public PartitionWrapper(List<AdjacencyList<ContractedEdge>> subGraphs, Set<ContractedEdge> corruptedEdges) {
+        public PartitionWrapper(List<AdjacencyList<RenamedEdge<ContractedEdge>>> subGraphs, Set<ContractedEdge> corruptedEdges) {
             this.subGraphs = subGraphs;
             this.corruptedEdges = corruptedEdges;
         }
