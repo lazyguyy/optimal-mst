@@ -27,13 +27,16 @@ public class PettieRamachandranMST {
     private static EdgeList<WeightedEdge> recurse(int vertices, EdgeList<ContractedEdge> edges) {
         if (edges.size() == 0)
             return new EdgeList<WeightedEdge>();
-        int maxsize = (int)(Math.log(Math.log(Math.log(vertices)/Math.log(2))/Math.log(2))/Math.log(2)) + 1;
+        int maxsize = (int)Math.ceil(Math.log(Math.log(Math.log(vertices)/Math.log(2))/Math.log(2))/Math.log(2));
+
+        // Calculate the partitions
         PartitionWrapper partitions = partition(vertices, AdjacencyList.of(vertices, edges), maxsize, 0.125);
         
         EdgeList<RenamedEdge<ContractedEdge>> partitionMSFWithRenamedEdges = new EdgeList<>();
 
+        // Calculate all MSFs for these subgraphs of fixed size using optimal decision trees
         for (AdjacencyList<RenamedEdge<ContractedEdge>> partition : partitions.subGraphs) {
-            //partitionMSF.meld(DecisionTree.optimalMST(partition));
+            //partitionMSFWithRenamedEdges.meld(DecisionTree.optimalMST(partition));
         }
 
         EdgeList<ContractedEdge> partitionMSF = new EdgeList<>();
@@ -42,6 +45,8 @@ public class PettieRamachandranMST {
             partitionMSF.append(edge.original);
         }
 
+        // Contract all partitions and calculate the MSF of the contracted graph
+        // with Fredman and Tarjan's algorithm in O(m) time
         Graphs.ContractedWrapper wrapper = Graphs.contract(vertices, partitionMSF, edges);
 
         // Remove corrupted Edges
