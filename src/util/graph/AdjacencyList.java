@@ -6,7 +6,9 @@ import java.util.ArrayList;
 
 public final class AdjacencyList<E extends DirectedEdge<E>> extends ArrayList<EdgeList<E>> {
 
-    public AdjacencyList(int count) {
+	private static final long serialVersionUID = 1L;
+
+	public AdjacencyList(int count) {
         super(count);
         for (int i = 0; i < count; i++)
             add(new EdgeList<>());
