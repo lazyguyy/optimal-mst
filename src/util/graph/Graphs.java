@@ -105,6 +105,30 @@ public final class Graphs {
         return result;
     }
 
+    /**
+     * Takes an Iterable of Contracted Edges and renames the vertices.
+     * @param edges The Iterable whose vertices shall be renamed
+     * @return Returns an AdjacencyList of renamed Edges
+     */
+    public static <E extends DirectedEdge<E> & Comparable<E>> AdjacencyList<RenamedEdge<E>> renameVertices(Iterable<E> edges) {
+        Map<Integer, Integer> renamedVertices = new HashMap<>();
+        List<RenamedEdge<E>> renamedEdges = new ArrayList<>();
+        int vertex = 0;
+        for (E edge : edges) {
+            int from = edge.from(), to = edge.to();
+            if (!renamedVertices.containsKey(from)) {
+                renamedVertices.put(from, vertex);
+                vertex++;
+            }
+            if (!renamedVertices.containsKey(to)) {
+                renamedVertices.put(to, vertex);
+                vertex++;
+            }
+            renamedEdges.add(new RenamedEdge<E>(renamedVertices.get(from), renamedVertices.get(to), edge));
+        }
+        return AdjacencyList.of(vertex, renamedEdges);
+    }  
+
     public static <E extends DirectedEdge<E> & Comparable<? super E>>
             Set<E> lightestEdgePerVertex(int vertices, Iterable<E> edges) {
 
