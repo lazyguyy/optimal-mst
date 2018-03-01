@@ -25,7 +25,7 @@ public class HeapTest {
             queue.insert(i);
         }
         long handle = queue.insertWithId(0);
-        // change 100 to 0
+        // change value 100 to 0
         vals[0] = 0;
         queue.decrease(handle);
 
