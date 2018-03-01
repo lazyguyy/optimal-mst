@@ -1,5 +1,6 @@
 package util.decision;
 
+import mst.KruskalMST;
 import util.graph.EdgeList;
 import util.graph.edge.DirectedEdge;
 import util.graph.edge.IndexedEdge;
@@ -9,9 +10,9 @@ import java.util.*;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-import mst.KruskalMST;
-
 public class PrecomputedMSTCollection {
+
+    private static final Logger LOGGER = Logger.getLogger(PrecomputedMSTCollection.class.getName());
 
     // graphs[vertex count][edge structure id]
     private final Map<Integer, Map<Integer, GraphStructureMSTLookup>> graphs;
@@ -24,8 +25,7 @@ public class PrecomputedMSTCollection {
 
     public static PrecomputedMSTCollection computeUpTo(int maxVertices) {
 
-        Logger log = Logger.getLogger("util.decision");
-        log.info(String.format("Computing decision trees for up to %s vertices.", maxVertices));
+        LOGGER.info(String.format("Computing decision trees for up to %s vertices.", maxVertices));
 
         Map<Integer, Map<Integer, GraphStructureMSTLookup>> lookups = new HashMap<>();
 
@@ -42,7 +42,7 @@ public class PrecomputedMSTCollection {
             	if (edges.size() <= 1)
             		continue;
 
-                log.info(String.format("Generating decision trees for graphs with %s edges and %s vertices.", edges.size(), vertices));
+                LOGGER.info(String.format("Generating decision trees for graphs with %s edges and %s vertices.", edges.size(), vertices));
                 // iterate over all decision tree depths
                 for (int depth = 0; depth < vertices * vertices; depth++) {
 
@@ -89,9 +89,9 @@ public class PrecomputedMSTCollection {
                         }
 
                         // a perfect decision tree has been found
-                        log.info(edges.stream().map(e -> String.format("(%s, %s)", e.from(), e.to())).collect(Collectors.joining(" ")));
-                        log.info(String.format("MST: %s", mstIndices));
-                        log.info(tree.toString());
+                        LOGGER.info(edges.stream().map(e -> String.format("(%s, %s)", e.from(), e.to())).collect(Collectors.joining(" ")));
+                        LOGGER.info(String.format("MST: %s", mstIndices));
+                        LOGGER.info(tree.toString());
                         int structureId = structureId(vertices, edges);
                         lookups.get(vertices).put(structureId, new DecisionTreeMSTLookup(tree, mstIndices));
                         continue edgecombinations;

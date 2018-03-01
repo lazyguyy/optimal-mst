@@ -10,10 +10,10 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class Launcher {
-
-    // todo add logging support for decision trees
 
     private static Map<String, MinimumSpanningTreeAlgorithm<WeightedEdge>> algorithms = new HashMap<>();
     static {
@@ -30,6 +30,9 @@ public class Launcher {
     }
 
     public static void main(String[] args) {
+
+        // disable / enable logging on root logger
+        Logger.getLogger("").setLevel(Level.OFF);
 
         MinimumSpanningTreeAlgorithm<WeightedEdge> alg = PettieRamachandranMST::compute;
         if (args.length == 1) {
