@@ -2,12 +2,11 @@ package mst;
 
 import util.graph.Graph;
 import util.graph.edge.DirectedEdge;
-import util.queue.FibonacciHeap;
+import util.queue.SoftHeap;
 import util.queue.SoftPriorityQueue;
 import util.graph.Graphs;
 import util.decision.PrecomputedMSTCollection;
 import util.graph.AdjacencyList;
-import util.graph.edge.WeightedEdge;
 import util.graph.edge.ContractedEdge;
 import util.graph.edge.RenamedEdge;
 import util.graph.EdgeList;
@@ -38,7 +37,7 @@ public final class PettieRamachandranMST {
         
         int maxsize = maxPartitionSize(vertices);
         // Calculate the partitions
-        PartitionWrapper partitions = partition(AdjacencyList.of(vertices, edges), maxsize, 0.125);
+        PartitionWrapper<E> partitions = partition(AdjacencyList.of(vertices, edges), maxsize, 0.125);
         
         EdgeList<RenamedEdge<ContractedEdge<E>>> partitionMSFWithRenamedEdges = new EdgeList<>();
 
@@ -73,22 +72,20 @@ public final class PettieRamachandranMST {
         partitions.corruptedEdges.forEach(reducedEdges::append);
         partitionMSF.forEach(reducedEdges::append);
         
-        // Two Steps of Boruvka's algorithm TODO: boruvka in loop
+        // Two Steps of Boruvka's algorithm
         EdgeList<E> boruvkaEdges = new EdgeList<>();
+        Set<ContractedEdge<E>> forestEdges;
+        Graph<ContractedEdge<E>> contractTwice = new Graph<>(vertices, reducedEdges);
 
-        Set<ContractedEdge<E>> forestEdges = Graphs.lightestEdgePerVertex(vertices, reducedEdges);
-        Graph<ContractedEdge<E>> contracted = Graphs.contract(vertices, forestEdges, reducedEdges);
+        for (int boruvkaIterations = 0; boruvkaIterations < 2; boruvkaIterations++) {
+            forestEdges = Graphs.lightestEdgePerVertex(contractTwice.vertices, contractTwice.edges);
+            contractTwice = Graphs.contract(contractTwice.vertices, forestEdges, contractTwice.edges);
 
-        // extract original edges
-        forestEdges.stream().map(e -> e.original).forEach(boruvkaEdges::append);
+            // extract original edges
+            forestEdges.stream().map(e -> e.original).forEach(boruvkaEdges::append);
+        }
 
-        forestEdges = Graphs.lightestEdgePerVertex(contracted.vertices, contracted.edges);
-        contracted = Graphs.contract(contracted.vertices, forestEdges, contracted.edges);
-
-        // extract original edges
-        forestEdges.stream().map(e -> e.original).forEach(boruvkaEdges::append);
-
-        EdgeList<E> mst = recurse(contracted.vertices, contracted.edges, decisionTrees);
+        EdgeList<E> mst = recurse(contractTwice.vertices, contractTwice.edges, decisionTrees);
         mst.meld(boruvkaEdges);
         return mst;       
 
@@ -102,31 +99,31 @@ public final class PettieRamachandranMST {
     	return Math.log(x) / Math.ceil(2);
     }
 
-    public static PartitionWrapper partition(AdjacencyList<ContractedEdge> edges, int maxsize, double errorRate) {
+    private static <E extends DirectedEdge<E> & Comparable<? super E>>
+            PartitionWrapper<E> partition(AdjacencyList<ContractedEdge<E>> edges, int maxsize, double errorRate) {
         boolean[] dead = new boolean[edges.size()];
         for (int i = 0; i < dead.length; ++i) {
         	dead[i] = false;
         }
-        Set<ContractedEdge> corruptedEdges = new HashSet<>();
-        List<Graphs.EdgesWithSize<RenamedEdge<ContractedEdge>>> partitions = new ArrayList<>();;
+        Set<ContractedEdge<E>> corruptedEdges = new HashSet<>();
+        List<Graph<RenamedEdge<ContractedEdge<E>>>> partitions = new ArrayList<>();
         // For each vertex find a partition that they are part of
         for (int current = 0; current < edges.size(); ++current) {
             if (dead[current])
                 continue;
 //            System.out.println("Growing partition for vertex " + current);
             dead[current] = true;
-            SoftPriorityQueue<ContractedEdge> softHeap = FibonacciHeap.naturallyOrdered();
-            for (ContractedEdge edge : edges.get(current)) {
-                softHeap.insert(edge);
-            }
+            SoftPriorityQueue<ContractedEdge<E>> softHeap = SoftHeap.naturallyOrdered(errorRate);
+            edges.get(current).forEach(softHeap::insert);
+
             Set<Integer> currentPartition = new HashSet<>();
-            EdgeList<ContractedEdge> partitionEdges = new EdgeList<>();
+            EdgeList<ContractedEdge<E>> partitionEdges = new EdgeList<>();
             currentPartition.add(current);
             // Grow the current partition as long as it is smaller than
             // max size and doesn't contain a dead (visited) vertex
             while (currentPartition.size() < maxsize) {
 //            	System.out.println(currentPartition);
-                ContractedEdge minEdge = softHeap.pop();
+                ContractedEdge<E> minEdge = softHeap.pop();
 //                System.out.println(minEdge);
                 // Extract the minimum Edge leading to a Vertex 
                 // which is not part of the current partition
@@ -143,7 +140,7 @@ public final class PettieRamachandranMST {
                 if (dead[minEdge.to()]) {
                     break;
                 }
-                for (ContractedEdge edge : edges.get(minEdge.to())) {
+                for (ContractedEdge<E> edge : edges.get(minEdge.to())) {
                 	if (!currentPartition.contains(edge.to()))
                 		softHeap.insert(edge);
                 }
@@ -154,7 +151,7 @@ public final class PettieRamachandranMST {
             // and add all of the other edges to the list of edges that 
             // are part of the subgraph induced by the current partition
             while (softHeap.size() > 0) {
-                ContractedEdge minEdge = softHeap.pop();
+                ContractedEdge<E> minEdge = softHeap.pop();
                 if (!currentPartition.contains(minEdge.to())) { 
                 	if(softHeap.corrupted().contains(minEdge)) {
                 		corruptedEdges.add(minEdge);
@@ -168,14 +165,14 @@ public final class PettieRamachandranMST {
             // Add the subgraph to our list of subgraphs
             partitions.add(Graphs.renameVertices(partitionEdges));
         }
-        return new PartitionWrapper(partitions, corruptedEdges);
+        return new PartitionWrapper<>(partitions, corruptedEdges);
     }
 
-    public static final class PartitionWrapper {
-        public final List<Graphs.EdgesWithSize<RenamedEdge<ContractedEdge>>> subGraphs;
-        final Set<ContractedEdge> corruptedEdges;
+    public static final class PartitionWrapper<E extends DirectedEdge<E> & Comparable<? super E>> {
+        final List<Graph<RenamedEdge<ContractedEdge<E>>>> subGraphs;
+        final Set<ContractedEdge<E>> corruptedEdges;
 
-        public PartitionWrapper(List<Graphs.EdgesWithSize<RenamedEdge<ContractedEdge>>> subGraphs, Set<ContractedEdge> corruptedEdges) {
+        PartitionWrapper(List<Graph<RenamedEdge<ContractedEdge<E>>>> subGraphs, Set<ContractedEdge<E>> corruptedEdges) {
             this.subGraphs = subGraphs;
             this.corruptedEdges = corruptedEdges;
         }

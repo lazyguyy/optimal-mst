@@ -15,7 +15,7 @@ public class Launcher {
 
     // todo add logging support for decision trees
 
-    private static Map<String, MinimumSpanningTreeAlgorithm> algorithms = new HashMap<>();
+    private static Map<String, MinimumSpanningTreeAlgorithm<WeightedEdge>> algorithms = new HashMap<>();
     static {
         algorithms.put("prim", PrimMST::compute);
         algorithms.put("kruskal", KruskalMST::compute);
@@ -31,7 +31,7 @@ public class Launcher {
 
     public static void main(String[] args) {
 
-        MinimumSpanningTreeAlgorithm alg = PettieRamachandranMST::compute;
+        MinimumSpanningTreeAlgorithm<WeightedEdge> alg = PettieRamachandranMST::compute;
         if (args.length == 1) {
             String first = args[0];
             if (algorithms.containsKey(first)) {
