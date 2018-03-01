@@ -22,8 +22,5 @@ public class IteratorTest {
         List<List<Integer>> perm = new ArrayList<>();
         Iterators.indexPermutations(3).forEach(perm::add);
         System.out.println(perm);
-
-        //for (DecisionTree t : DecisionTree.enumerateTrees(2, 2))
-        //    System.out.println(t);
     }
 }

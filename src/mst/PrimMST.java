@@ -2,30 +2,34 @@ package mst;
 
 import util.graph.AdjacencyList;
 import util.graph.EdgeList;
-import util.graph.edge.WeightedEdge;
+import util.graph.edge.DirectedEdge;
 import util.queue.ExtendedPriorityQueue;
 import util.queue.FibonacciHeap;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.List;
 
 public final class PrimMST {
 
-    public static EdgeList<WeightedEdge> compute(int vertices, Iterable<WeightedEdge> edges) {
+    public static <E extends DirectedEdge<E>> EdgeList<E> compute(int vertices, Iterable<E> edges) {
 
         double[] distances = new double[vertices];
         boolean[] visited = new boolean[vertices];
-        WeightedEdge[] lightest = new WeightedEdge[vertices];
+        List<E> lightest = new ArrayList<>();
+
+        for (int i = 0; i < vertices; i++)
+            lightest.add(null);
 
         for (int i = 0; i < vertices; i++)
             distances[i] = Double.POSITIVE_INFINITY;
 
-        AdjacencyList<WeightedEdge> adjacency = AdjacencyList.of(vertices, edges);
+        AdjacencyList<E> adjacency = AdjacencyList.of(vertices, edges);
 
         ExtendedPriorityQueue<Integer> queue = new FibonacciHeap<>(Comparator.comparingDouble(i -> distances[i]));
 
         distances[0] = 0;
-        lightest[0] = null;
+        lightest.set(0, null);
 
         long[] ids = new long[vertices];
         for (int i = 0; i < vertices; i++)
@@ -35,15 +39,15 @@ public final class PrimMST {
             int vertex = queue.pop();
             visited[vertex] = true;
 
-            for (WeightedEdge e : adjacency.get(vertex)) {
+            for (E e : adjacency.get(vertex)) {
                 if (!visited[e.to()] && distances[e.to()] > e.weight()) {
                     distances[e.to()] = e.weight();
-                    lightest[e.to()] = e;
+                    lightest.set(e.to(), e);
                     queue.decrease(ids[e.to()]);
                 }
             }
         }
 
-        return new EdgeList<>(Arrays.asList(lightest).subList(1, vertices));
+        return new EdgeList<>(lightest.subList(1, vertices));
     }
 }

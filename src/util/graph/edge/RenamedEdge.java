@@ -7,12 +7,6 @@ public final class RenamedEdge<E extends DirectedEdge<E> & Comparable<? super E>
     private final int to;
     public final E original;
 
-    public RenamedEdge(final E original) {
-        this.from = original.from();
-        this.to = original.to();
-        this.original = original;
-    }
-
     public RenamedEdge(final int from, final int to, final E original) {
         this.from = from;
         this.to = to;

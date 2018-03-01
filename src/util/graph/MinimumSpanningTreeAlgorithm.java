@@ -1,8 +1,8 @@
 package util.graph;
 
-import util.graph.edge.WeightedEdge;
+import util.graph.edge.DirectedEdge;
 
 @FunctionalInterface
 public interface MinimumSpanningTreeAlgorithm {
-    EdgeList<WeightedEdge> findMST(int vertices, Iterable<WeightedEdge> edges);
+    <E extends DirectedEdge<E>> EdgeList<E> findMST(int vertices, Iterable<E> edges);
 }

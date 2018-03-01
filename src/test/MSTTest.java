@@ -12,6 +12,7 @@ import util.graph.edge.ContractedEdge;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.lang.reflect.Array;
 import java.util.Arrays;
 
 public class MSTTest {
@@ -33,34 +34,12 @@ public class MSTTest {
                 PettieRamachandranMST::compute,
         };
 
-        EdgeList<WeightedEdge> bigGraph = readGraph();
         for (MinimumSpanningTreeAlgorithm algorithm : algorithms)
-            System.out.println(algorithm.findMST(100, bigGraph).weight());
+            System.out.println(algorithm.findMST(6, Arrays.asList(edges)).weight());
         
 //        PettieRamachandranMST.PartitionWrapper partitions = PettieRamachandranMST.partition(AdjacencyList.of(100, readGraph()), 5, 0.5);
 //        for (Graphs.EdgesWithSize<RenamedEdge<ContractedEdge>> partition : partitions.subGraphs) {
 //        	System.out.println(partition.edges);
 //        }
-    }
-    
-    public static EdgeList<WeightedEdge> readGraph() {
-    	BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-    	EdgeList<WeightedEdge> edges = new EdgeList<WeightedEdge>();
-    	
-    	String line;
-    	try {
-			while ((line = br.readLine()) != null) {
-				if (line.equals("q"))
-					break;
-				String[] words = line.split(" ");
-				int from = Integer.parseInt(words[0]);
-				int to = Integer.parseInt(words[1]);
-				int weight = Integer.parseInt(words[2]);
-				edges.append(new WeightedEdge(from, to, weight));
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-    	return edges;
     }
 }

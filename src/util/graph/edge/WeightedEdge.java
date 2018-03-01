@@ -13,6 +13,10 @@ public final class WeightedEdge implements DirectedEdge<WeightedEdge>, Comparabl
         this.weight = weight;
     }
 
+    public static WeightedEdge reweighted(final WeightedEdge original, final double weight) {
+        return new WeightedEdge(original.from, original.to, weight);
+    }
+
     public int from() {
         return from;
     }

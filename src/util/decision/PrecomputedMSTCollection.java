@@ -6,6 +6,8 @@ import util.graph.edge.IndexedEdge;
 import util.graph.edge.WeightedEdge;
 
 import java.util.*;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import mst.KruskalMST;
 
@@ -21,8 +23,9 @@ public class PrecomputedMSTCollection {
     }
 
     public static PrecomputedMSTCollection computeUpTo(int maxVertices) {
-    	
-//    	System.out.println("computing decision trees for " + maxVertices);
+
+        Logger log = Logger.getLogger("util.decision");
+        log.info(String.format("Computing decision trees for up to %s vertices.", maxVertices));
 
         Map<Integer, Map<Integer, GraphStructureMSTLookup>> lookups = new HashMap<>();
 
@@ -30,16 +33,16 @@ public class PrecomputedMSTCollection {
         for (int vertices = 2; vertices < maxVertices + 1; vertices++) {
             lookups.put(vertices, new HashMap<>());
 
-            List<Iterators.IntTuple> possibleEdges = new ArrayList<>();
-            Iterators.ascendingIntPairs(vertices).forEach(possibleEdges::add);
+            List<WeightedEdge> possibleEdges = new ArrayList<>();
+            Iterators.ascendingIntPairs(vertices).forEach(pair -> possibleEdges.add(new WeightedEdge(pair.i, pair.j, 0)));
 
             // generate every combination of edges
             edgecombinations:
-            for (List<Iterators.IntTuple> edges : Iterators.powerSet(possibleEdges)) {
+            for (List<WeightedEdge> edges : Iterators.powerSet(possibleEdges)) {
             	if (edges.size() <= 1)
             		continue;
 
-//            	System.out.println("Generating decision trees for graphs with " + edges.size() + " edges and " + vertices + " vertices");
+                log.info(String.format("Generating decision trees for graphs with %s edges and %s vertices.", edges.size(), vertices));
                 // iterate over all decision tree depths
                 for (int depth = 0; depth < vertices * vertices; depth++) {
 
@@ -56,8 +59,8 @@ public class PrecomputedMSTCollection {
                             List<IndexedEdge<WeightedEdge>> permutedEdges = new ArrayList<>();
                             // Create graph with permuted edge weights
                             for (int index = 0; index < edges.size(); ++index) {
-                            	permutedEdges.add(new IndexedEdge<WeightedEdge>(index, new WeightedEdge(
-                            			edges.get(index).i, edges.get(index).j, permutation.get(index))));
+                            	permutedEdges.add(new IndexedEdge<>(index,
+                                        WeightedEdge.reweighted(edges.get(index), permutation.get(index))));
                             }
                             
                             EdgeList<IndexedEdge<WeightedEdge>> mst = KruskalMST.compute(vertices, permutedEdges);
@@ -70,19 +73,15 @@ public class PrecomputedMSTCollection {
                             
                             if (mstIndices.containsKey(bucket)) {
                                 // compare calculated indices with stored ones
-                            	boolean unequal = true;
-                            	List<Integer> otherIndices = mstIndices.get(bucket);
-                            	if (otherIndices.size() == edgeIndices.size()) {
-                            		unequal = false;
-                            		for (int i = 0; i < edgeIndices.size(); ++i) {
-                            			if (otherIndices.get(i) != edgeIndices.get(i)) {
-                            				unequal = true;
-                            				break;
-                            			}
-                            		}
-                            	}
-                                if (unequal)
+                                List<Integer> otherIndices = mstIndices.get(bucket);
+
+                                if (otherIndices.size() == edgeIndices.size())
                                     continue decisiontrees;
+
+                                for (int i = 0; i < edgeIndices.size(); ++i)
+                                    if (!otherIndices.get(i).equals(edgeIndices.get(i)))
+                                        continue decisiontrees;
+
                             } else {
                                 // store indices
                                 mstIndices.put(bucket, edgeIndices);
@@ -90,21 +89,11 @@ public class PrecomputedMSTCollection {
                         }
 
                         // a perfect decision tree has been found
-                        // TODO: Refactor this
-
-                        int id = 0;
-//                        System.out.print("[ ");
-                        for (Iterators.IntTuple e : edges) {
-                            if (e.i == e.j)
-                                continue;
-                            id |= 1 << (e.j * vertices + e.i);
-                            id |= 1 << (e.i * vertices + e.j);
-//                            System.out.print("(" + e.i + ", " + e.j + ") ");
-                        }
-//                        System.out.println("]");
-//                        System.out.println(mstIndices + "\n");
-//                        System.out.println(tree);
-                        lookups.get(vertices).put(id, new DecisionTreeMSTLookup(tree, mstIndices));
+                        log.info(edges.stream().map(e -> String.format("(%s, %s)", e.from(), e.to())).collect(Collectors.joining(" ")));
+                        log.info(String.format("MST: %s", mstIndices));
+                        log.info(tree.toString());
+                        int structureId = structureId(vertices, edges);
+                        lookups.get(vertices).put(structureId, new DecisionTreeMSTLookup(tree, mstIndices));
                         continue edgecombinations;
                     }
                 }
@@ -150,7 +139,7 @@ public class PrecomputedMSTCollection {
     }
 
     // for extensibility in case of emergency
-    private static interface GraphStructureMSTLookup {
+    private interface GraphStructureMSTLookup {
         <E extends Comparable<? super E>> List<Integer> lookup(List<E> edges);
     }
 
@@ -160,7 +149,7 @@ public class PrecomputedMSTCollection {
         // the bucket lookup table
         private final Map<Integer, List<Integer>> mstIndices;
 
-        public DecisionTreeMSTLookup(DecisionTree tree, Map<Integer, List<Integer>> indices) {
+        DecisionTreeMSTLookup(DecisionTree tree, Map<Integer, List<Integer>> indices) {
             this.tree = tree;
             this.mstIndices = indices;
         }

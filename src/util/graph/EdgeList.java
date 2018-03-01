@@ -3,10 +3,13 @@ package util.graph;
 import util.graph.edge.DirectedEdge;
 import util.queue.Meldable;
 
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.function.IntFunction;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -91,11 +94,15 @@ public final class EdgeList<E extends DirectedEdge<E>> implements Meldable<EdgeL
         return stream().toArray(generator);
     }
 
+    public <C extends Collection<E>> C collect(Supplier<C> collectionFactory) {
+        return stream().collect(Collectors.toCollection(collectionFactory));
+    }
+
     @Override
     public String toString() {
         return stream()
                 .map(E::toString)
-                .collect(java.util.stream.Collectors.joining(",\n  ", "[", "]"));
+                .collect(java.util.stream.Collectors.joining(",\n ", "[", "]"));
     }
 
     @Override

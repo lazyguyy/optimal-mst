@@ -14,6 +14,10 @@ public final class AdjacencyList<E extends DirectedEdge<E>> extends ArrayList<Ed
             add(new EdgeList<>());
     }
 
+    public static <E extends DirectedEdge<E>> AdjacencyList<E> of(Graph<E> g) {
+        return of(g.vertices, g.edges);
+    }
+
     public static <E extends DirectedEdge<E>> AdjacencyList<E> of(int vertices, Iterable<? extends E> edges) {
         AdjacencyList<E> adjacency = new AdjacencyList<>(vertices);
         for (E e : edges) {
