@@ -30,7 +30,7 @@ public class PettieRamachandranMST {
         int maxsize = (int)Math.ceil(Math.log(Math.log(Math.log(vertices)/Math.log(2))/Math.log(2))/Math.log(2));
 
         // Calculate the partitions
-        PartitionWrapper partitions = partition(vertices, AdjacencyList.of(vertices, edges), maxsize, 0.125);
+        PartitionWrapper partitions = partition(AdjacencyList.of(vertices, edges), maxsize, 0.125);
         
         EdgeList<RenamedEdge<ContractedEdge>> partitionMSFWithRenamedEdges = new EdgeList<>();
 
@@ -85,38 +85,50 @@ public class PettieRamachandranMST {
 
     }
 
-    private static PartitionWrapper partition(int vertices, AdjacencyList<ContractedEdge> edges, int maxsize, double errorRate) {
-        boolean[] dead = new boolean[vertices];
+    public static PartitionWrapper partition(AdjacencyList<ContractedEdge> edges, int maxsize, double errorRate) {
+        boolean[] dead = new boolean[edges.size()];
+        for (int i = 0; i < dead.length; ++i) {
+        	dead[i] = false;
+        }
         Set<ContractedEdge> corruptedEdges = new HashSet<>();
         SoftHeap<ContractedEdge> softHeap = SoftHeap.naturallyOrdered(errorRate);
         List<AdjacencyList<RenamedEdge<ContractedEdge>>> partitions = new ArrayList<>();;
         // For each vertex find a partition that they are part of
-        for (int current = 0; current < vertices; ++current) {
+        for (int current = 0; current < edges.size(); ++current) {
             if (dead[current])
                 continue;
+            System.out.println("Growing partition for vertex " + current);
             dead[current] = true;
             for (ContractedEdge edge : edges.get(current)) {
                 softHeap.insert(edge);
             }
             Set<Integer> currentPartition = new HashSet<>();
-            List<ContractedEdge> partitionEdges = new ArrayList<>();
+            EdgeList<ContractedEdge> partitionEdges = new EdgeList<>();
             currentPartition.add(current);
             // Grow the current partition as long as it is smaller than
             // max size and doesn't contain a dead (visited) vertex
             while (currentPartition.size() < maxsize) {
+//            	System.out.println(currentPartition);
                 ContractedEdge minEdge = softHeap.pop();
+//                System.out.println(minEdge);
                 // Extract the minimum Edge leading to a Vertex 
                 // which is not part of the current partition
                 while (currentPartition.contains(minEdge.to())) {
                     // In case the edge doesn't lead to a new vertex
                     // it is part of the subgraph induced by the 
                     // current partition
-                    partitionEdges.add(minEdge);
+//                	System.out.println("Adding " + minEdge + " to partitionEdges.");
+                    partitionEdges.append(minEdge);
                     minEdge = softHeap.pop();
                 }
                 currentPartition.add(minEdge.to());
+                partitionEdges.append(minEdge);
                 if (dead[minEdge.to()]) {
                     break;
+                }
+                for (ContractedEdge edge : edges.get(minEdge.to())) {
+                	if (!currentPartition.contains(edge.to()))
+                		softHeap.insert(edge);
                 }
                 dead[minEdge.to()] = true;
             }
@@ -129,7 +141,8 @@ public class PettieRamachandranMST {
                 if (!currentPartition.contains(minEdge.to())) {
                     corruptedEdges.add(minEdge);
                 } else {
-                    partitionEdges.add(minEdge);
+                	System.out.println("Adding " + minEdge + " to partitionEdges.");
+                    partitionEdges.append(minEdge);
                 }
             }
             // Just to be sure
@@ -140,8 +153,8 @@ public class PettieRamachandranMST {
         return new PartitionWrapper(partitions, corruptedEdges);
     }
 
-    private static final class PartitionWrapper {
-        final List<AdjacencyList<RenamedEdge<ContractedEdge>>> subGraphs;
+    public static final class PartitionWrapper {
+        public final List<AdjacencyList<RenamedEdge<ContractedEdge>>> subGraphs;
         final Set<ContractedEdge> corruptedEdges;
 
         public PartitionWrapper(List<AdjacencyList<RenamedEdge<ContractedEdge>>> subGraphs, Set<ContractedEdge> corruptedEdges) {
