@@ -247,7 +247,7 @@ public class FibonacciHeap<T> implements ExtendedPriorityQueue<T> {
 
     private static final class Node<T> {
         final T element;
-        final long id;
+        final long id; // TODO: USE THIS
 
         int degree = 0;
         boolean marked = false;

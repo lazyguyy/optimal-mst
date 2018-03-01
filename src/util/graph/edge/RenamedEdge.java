@@ -48,7 +48,7 @@ public final class RenamedEdge<E extends DirectedEdge<E> & Comparable<? super E>
     public boolean equals(final Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        RenamedEdge<?> that = (RenamedEdge) o;
+        RenamedEdge<?> that = (RenamedEdge<?>) o;
         return from == that.from && to == that.to && original == that.original;
     }
 

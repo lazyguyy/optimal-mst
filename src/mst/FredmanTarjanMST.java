@@ -42,7 +42,7 @@ public final class FredmanTarjanMST {
         int exp = 2 * edgeCount / vertices;
         // avoid overflows
         exp = Math.min(62, exp);
-        long componentMax = 1 << exp;
+        long componentMax = 1L << exp;
 
         int[] discoveredInIteration = new int[vertices];
         for (int i = 0; i < vertices; i++)
@@ -101,7 +101,7 @@ public final class FredmanTarjanMST {
             return markedEdges;
 
         // otherwise we contract the components
-        Graphs.ContractedWrapper contracted = Graphs.contract(vertices, forestEdges, edges);
+        Graphs.EdgesWithSize<ContractedEdge> contracted = Graphs.contract(vertices, forestEdges, edges);
 
         // and recurse on the contracted graph
         markedEdges.meld(recurse(contracted.size, contracted.edges));

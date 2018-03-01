@@ -110,9 +110,9 @@ public final class Graphs {
      * @param edges The Iterable whose vertices shall be renamed
      * @return Returns an AdjacencyList of renamed Edges
      */
-    public static <E extends DirectedEdge<E> & Comparable<? super E>> AdjacencyList<RenamedEdge<E>> renameVertices(Iterable<E> edges) {
+    public static <E extends DirectedEdge<E> & Comparable<? super E>> EdgesWithSize<RenamedEdge<E>> renameVertices(Iterable<E> edges) {
         Map<Integer, Integer> renamedVertices = new HashMap<>();
-        List<RenamedEdge<E>> renamedEdges = new ArrayList<>();
+        EdgeList<RenamedEdge<E>> renamedEdges = new EdgeList<>();
         int vertex = 0;
         for (E edge : edges) {
             int from = edge.from(), to = edge.to();
@@ -124,9 +124,9 @@ public final class Graphs {
                 renamedVertices.put(to, vertex);
                 vertex++;
             }
-            renamedEdges.add(new RenamedEdge<E>(renamedVertices.get(from), renamedVertices.get(to), edge));
+            renamedEdges.append(new RenamedEdge<E>(renamedVertices.get(from), renamedVertices.get(to), edge));
         }
-        return AdjacencyList.of(vertex, renamedEdges);
+        return new EdgesWithSize<RenamedEdge<E>>(vertex, renamedEdges);
     }  
 
     public static <E extends DirectedEdge<E> & Comparable<? super E>>
@@ -148,7 +148,7 @@ public final class Graphs {
         return lightest.stream().filter(Objects::nonNull).collect(Collectors.toCollection(HashSet::new));
     }
 
-    public static ContractedWrapper contract(int vertices, Iterable<ContractedEdge> span, Iterable<ContractedEdge> edges) {
+    public static EdgesWithSize<ContractedEdge> contract(int vertices, Iterable<ContractedEdge> span, Iterable<ContractedEdge> edges) {
 
         // find connected components
         List<List<Integer>> components = components(vertices, span);
@@ -167,14 +167,14 @@ public final class Graphs {
         // remove duplicates
         EdgeList<ContractedEdge> remainingEdges = Graphs.removeDuplicates(componentCount, contracted);
 
-        return new ContractedWrapper(componentCount, remainingEdges);
+        return new EdgesWithSize<ContractedEdge>(componentCount, remainingEdges);
     }
 
-    public static final class ContractedWrapper {
+    public static final class EdgesWithSize<E extends DirectedEdge<E>> {
         public final int size;
-        public final EdgeList<ContractedEdge> edges;
+        public final EdgeList<E> edges;
 
-        ContractedWrapper(int size, EdgeList<ContractedEdge> edges) {
+        EdgesWithSize(int size, EdgeList<E> edges) {
             this.size = size;
             this.edges = edges;
         }

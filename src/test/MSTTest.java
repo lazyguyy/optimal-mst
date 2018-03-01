@@ -1,8 +1,10 @@
 package test;
 
 import mst.*;
+import util.decision.PrecomputedMSTCollection;
 import util.graph.AdjacencyList;
 import util.graph.EdgeList;
+import util.graph.Graphs;
 import util.graph.MinimumSpanningTreeAlgorithm;
 import util.graph.edge.WeightedEdge;
 import util.graph.edge.RenamedEdge;
@@ -27,21 +29,23 @@ public class MSTTest {
                 BoruvkaMST::compute,
                 PrimMST::compute,
                 KruskalMST::compute,
-                FredmanTarjanMST::compute
+                FredmanTarjanMST::compute,
+                PettieRamachandranMST::compute,
         };
 
+        EdgeList<WeightedEdge> bigGraph = readGraph();
         for (MinimumSpanningTreeAlgorithm algorithm : algorithms)
-            System.out.println(algorithm.findMST(6, Arrays.asList(edges)).weight());
+            System.out.println(algorithm.findMST(100, bigGraph).weight());
         
-        PettieRamachandranMST.PartitionWrapper partitions = PettieRamachandranMST.partition(AdjacencyList.of(100, readGraph()), 5, 0.5);
-        for (AdjacencyList<RenamedEdge<ContractedEdge>> partition : partitions.subGraphs) {
-        	System.out.println(partition);
-        }
+//        PettieRamachandranMST.PartitionWrapper partitions = PettieRamachandranMST.partition(AdjacencyList.of(100, readGraph()), 5, 0.5);
+//        for (Graphs.EdgesWithSize<RenamedEdge<ContractedEdge>> partition : partitions.subGraphs) {
+//        	System.out.println(partition.edges);
+//        }
     }
     
-    public static EdgeList<ContractedEdge> readGraph() {
+    public static EdgeList<WeightedEdge> readGraph() {
     	BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-    	EdgeList<ContractedEdge> edges = new EdgeList<ContractedEdge>();
+    	EdgeList<WeightedEdge> edges = new EdgeList<WeightedEdge>();
     	
     	String line;
     	try {
@@ -52,7 +56,7 @@ public class MSTTest {
 				int from = Integer.parseInt(words[0]);
 				int to = Integer.parseInt(words[1]);
 				int weight = Integer.parseInt(words[2]);
-				edges.append(new ContractedEdge(new WeightedEdge(from, to, weight)));
+				edges.append(new WeightedEdge(from, to, weight));
 			}
 		} catch (IOException e) {
 			e.printStackTrace();

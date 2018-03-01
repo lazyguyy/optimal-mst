@@ -18,7 +18,7 @@ class DecisionTree {
         return index - comparisons.length;
     }
 
-    public <E> int classify(List<E> elements, Comparator<? super E> comparator) {
+    public <E extends Comparable<? super E>> int classify(List<E> elements) {
 
         int index = 0;
         while (index < comparisons.length) {
@@ -26,7 +26,7 @@ class DecisionTree {
             E first = elements.get(c.firstIndex);
             E second = elements.get(c.secondIndex);
             // if first < second
-            if (comparator.compare(first, second) < 0) {
+            if (first.compareTo(second) < 0) {
                 // go to left child
                 index = 2 * index + 1;
             } else {
@@ -76,11 +76,11 @@ class DecisionTree {
         return sb.toString();
     }
 
-    public static Iterable<DecisionTree> enumerateTrees(int depth, int vertices) {
+    public static Iterable<DecisionTree> enumerateTrees(int depth, int edges) {
         int length = (1 << (depth + 1)) - 1;
 
         List<Comparison> comparisons = new ArrayList<>();
-        Iterators.ascendingIntPairs(vertices).forEach(p -> comparisons.add(new Comparison(p.i, p.j)));
+        Iterators.ascendingIntPairs(edges).forEach(p -> comparisons.add(new Comparison(p.i, p.j)));
 
         return () -> Iterators.combinations(length, comparisons)
             .map(l -> new DecisionTree(l.toArray(new Comparison[length])))

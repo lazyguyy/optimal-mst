@@ -22,7 +22,7 @@ public final class BoruvkaMST {
             return new EdgeList<>();
 
         Set<ContractedEdge> forestEdges = Graphs.lightestEdgePerVertex(vertices, edges);
-        Graphs.ContractedWrapper contracted = Graphs.contract(vertices, forestEdges, edges);
+        Graphs.EdgesWithSize<ContractedEdge> contracted = Graphs.contract(vertices, forestEdges, edges);
 
         // extract original edges
         EdgeList<WeightedEdge> markedEdges = new EdgeList<>();

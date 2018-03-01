@@ -1,9 +1,11 @@
 package util.queue;
 
+import java.util.Collection;
+
 public interface SoftPriorityQueue<T> {
     T peek();
     T pop();
-    Iterable<T> corrupted();
+    Collection<T> corrupted();
     void insert(T element);
     int size();
     default boolean empty() {

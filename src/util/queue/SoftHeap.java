@@ -41,7 +41,7 @@ public class SoftHeap<T> implements SoftPriorityQueue<T>, Meldable<SoftHeap<T>> 
     }
 
     @Override
-    public Iterable<T> corrupted() {
+    public Collection<T> corrupted() {
         return corruptedElements;
     }
 
@@ -299,7 +299,7 @@ public class SoftHeap<T> implements SoftPriorityQueue<T>, Meldable<SoftHeap<T>> 
                     }
                 }
                 // Update the set keeping track of the corrupted elements
-                corruptedElements.addAll(leftChild.elements);
+                corruptedElements.addAll(elements);
                 // Append all elements from the child node
                 key = leftChild.key;
                 elements.addAll(leftChild.elements);
