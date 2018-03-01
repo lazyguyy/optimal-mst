@@ -2,7 +2,7 @@ package util.graph.edge;
 
 import java.util.Objects;
 
-public final class RenamedEdge<E extends DirectedEdge<E> & Comparable<E>> implements DirectedEdge<RenamedEdge<E>>, Comparable<RenamedEdge<E>> {
+public final class RenamedEdge<E extends DirectedEdge<E> & Comparable<? super E>> implements DirectedEdge<RenamedEdge<E>>, Comparable<RenamedEdge<E>> {
     private final int from;
     private final int to;
     public final E original;

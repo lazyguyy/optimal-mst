@@ -110,7 +110,7 @@ public final class Graphs {
      * @param edges The Iterable whose vertices shall be renamed
      * @return Returns an AdjacencyList of renamed Edges
      */
-    public static <E extends DirectedEdge<E> & Comparable<E>> AdjacencyList<RenamedEdge<E>> renameVertices(Iterable<E> edges) {
+    public static <E extends DirectedEdge<E> & Comparable<? super E>> AdjacencyList<RenamedEdge<E>> renameVertices(Iterable<E> edges) {
         Map<Integer, Integer> renamedVertices = new HashMap<>();
         List<RenamedEdge<E>> renamedEdges = new ArrayList<>();
         int vertex = 0;
