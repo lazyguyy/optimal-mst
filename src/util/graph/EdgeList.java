@@ -5,6 +5,7 @@ import util.queue.Meldable;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.function.IntFunction;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -98,6 +99,19 @@ public final class EdgeList<E extends DirectedEdge<E>> implements Meldable<EdgeL
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        EdgeList<?> other = (EdgeList<?>) o;
+        if (size != other.size)
+            return false;
+        for (Iterator<?> me = iterator(), them = other.iterator(); me.hasNext() && them.hasNext();)
+            if (me.next() != them.next())
+                return false;
+        return true;
+    }
+
+    @Override
     public Iterator<E> iterator() {
         return new Itr<>(this);
     }
@@ -141,6 +155,14 @@ public final class EdgeList<E extends DirectedEdge<E>> implements Meldable<EdgeL
             this(edge);
             this.prev = prev;
             this.next = next;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            Node<?> that = (Node<?>) o;
+            return edge == that.edge;
         }
     }
 }

@@ -18,13 +18,13 @@ class DecisionTree {
         return index - comparisons.length;
     }
 
-    public <E> int classify(E[] elements, Comparator<? super E> comparator) {
+    public <E> int classify(List<E> elements, Comparator<? super E> comparator) {
 
         int index = 0;
         while (index < comparisons.length) {
             Comparison c = comparisons[index];
-            E first = elements[c.firstIndex];
-            E second = elements[c.secondIndex];
+            E first = elements.get(c.firstIndex);
+            E second = elements.get(c.secondIndex);
             // if first < second
             if (comparator.compare(first, second) < 0) {
                 // go to left child
