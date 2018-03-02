@@ -128,7 +128,7 @@ public final class Graphs {
             renamedEdges.append(new RenamedEdge<>(renamedVertices.get(from), renamedVertices.get(to), edge));
         }
         return new Graph<>(vertex, renamedEdges);
-    }  
+    }
 
     public static <E extends DirectedEdge<E> & Comparable<? super E>>
             Set<E> lightestEdgePerVertex(int vertices, Iterable<E> edges) {
@@ -149,6 +149,7 @@ public final class Graphs {
         return lightest.stream().filter(Objects::nonNull).collect(Collectors.toCollection(HashSet::new));
     }
 
+    // todo have this take contracted edges
     public static <E extends DirectedEdge<E> & Comparable<? super E>>
             Graph<ContractedEdge<E>> contract(int vertices, Iterable<ContractedEdge<E>> span, Iterable<ContractedEdge<E>> edges) {
 

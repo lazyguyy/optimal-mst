@@ -2,6 +2,7 @@ package util.graph.edge;
 
 import java.util.Objects;
 
+// todo make generic
 public final class WeightedEdge implements DirectedEdge<WeightedEdge>, Comparable<WeightedEdge> {
     private final int from;
     private final int to;

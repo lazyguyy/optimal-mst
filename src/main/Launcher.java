@@ -4,14 +4,13 @@ import mst.*;
 import util.graph.EdgeList;
 import util.graph.MinimumSpanningTreeAlgorithm;
 import util.graph.edge.WeightedEdge;
+import util.log.Logger;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class Launcher {
 
@@ -32,7 +31,7 @@ public class Launcher {
     public static void main(String[] args) {
 
         // disable / enable logging on root logger
-        Logger.getLogger("").setLevel(Level.OFF);
+        Logger.setActive(true);
 
         MinimumSpanningTreeAlgorithm<WeightedEdge> alg = PettieRamachandranMST::compute;
         if (args.length == 1) {
