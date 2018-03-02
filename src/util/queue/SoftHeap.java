@@ -66,6 +66,8 @@ public class SoftHeap<T> implements SoftPriorityQueue<T>, Meldable<SoftHeap<T>> 
                 }
                 if (minHeap.prev == null) {
                     queue = minHeap.next;
+                    if (queue != null)
+                    	queue.updateSuffixMin();
                 } else {
                     minHeap.prev.next = minHeap.next;
                     minHeap.prev.updateSuffixMin();
@@ -74,7 +76,7 @@ public class SoftHeap<T> implements SoftPriorityQueue<T>, Meldable<SoftHeap<T>> 
         		minHeap.updateSuffixMin();
         	}
         }
-        corruptedElements.remove(elements);
+        corruptedElements.remove(element);
         size--;
         return element;
     }
@@ -111,6 +113,9 @@ public class SoftHeap<T> implements SoftPriorityQueue<T>, Meldable<SoftHeap<T>> 
     @Override
     public void meld(SoftHeap<T> other) {
 	// In case this soft heap is empty we just copy the other heap
+    	if (other.queue == null) {
+    		return;
+    	}
     	if (this.queue == null) {
     		this.queue = other.queue;
     		this.rank = other.rank;
@@ -172,12 +177,12 @@ public class SoftHeap<T> implements SoftPriorityQueue<T>, Meldable<SoftHeap<T>> 
                 	BinaryHeap newHeap = combine(currentHeap, currentHeap.next);
                     rank = Math.max(rank, newHeap.root.rank);
                     // Update the references properly
+                    currentHeap = newHeap;
                     if (newHeap.prev == null) {
                         queue = newHeap;
-                        currentHeap = newHeap;
                         continue;
                     } else {
-                        currentHeap.next = newHeap;
+                        newHeap.prev.next = newHeap;
                     }
                 }
             // we only need to look at trees smaller than maxRank + 1
@@ -222,8 +227,7 @@ public class SoftHeap<T> implements SoftPriorityQueue<T>, Meldable<SoftHeap<T>> 
             }
             if (prev != null) {
                 prev.updateSuffixMin();
-            } else {
-            }
+            } 
         }
     }
 

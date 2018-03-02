@@ -36,7 +36,7 @@ public class Launcher {
         MinimumSpanningTreeAlgorithm<WeightedEdge> alg = PettieRamachandranMST::compute;
         if (args.length == 1) {
             String first = args[0];
-            if (algorithms.containsKey(first)) {
+            if (!algorithms.containsKey(first)) {
                 printUsage();
                 return;
             }
@@ -68,5 +68,6 @@ public class Launcher {
         for (WeightedEdge edge : mst) {
             System.out.printf("%s %s  %s\n", edge.from(), edge.to(), edge.weight());
         }
+        System.out.println("Total weight: " + mst.weight());
     }
 }

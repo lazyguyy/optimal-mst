@@ -2,6 +2,7 @@ package mst;
 
 import util.graph.Graph;
 import util.graph.edge.DirectedEdge;
+import util.queue.FibonacciHeap;
 import util.queue.SoftHeap;
 import util.queue.SoftPriorityQueue;
 import util.graph.Graphs;
@@ -54,21 +55,23 @@ public final class PettieRamachandranMST {
 
         // Contract all partitions and calculate the MSF of the contracted graph
         // with Fredman and Tarjan's algorithm in O(m) time
-        Graph<ContractedEdge<E>> wrapper = Graphs.contract(vertices, partitionMSF, edges);
+        EdgeList<ContractedEdge<ContractedEdge<E>>> wrappedEdges = new EdgeList<>();
+        edges.forEach(e -> wrappedEdges.append(new ContractedEdge<>(e)));
+        Graph<ContractedEdge<ContractedEdge<E>>> wrapper = Graphs.contract(vertices, partitionMSF, wrappedEdges);
 
 //        System.out.println(wrapper.edges);
         // Remove corrupted Edges
-        EdgeList<E> denseCaseEdges = new EdgeList<>();
-        for (ContractedEdge<E> e : wrapper.edges) {
+        EdgeList<ContractedEdge<ContractedEdge<E>>> denseCaseEdges = new EdgeList<>();
+        for (ContractedEdge<ContractedEdge<E>> e : wrapper.edges) {
             if (!partitions.corruptedEdges.contains(e)) {
-                denseCaseEdges.append(e.original);
+                denseCaseEdges.append(e);
             }
         }
 //        System.out.println(denseCaseEdges);
-        EdgeList<E> denseCaseMST = FredmanTarjanMST.compute(wrapper.vertices, denseCaseEdges);
+        EdgeList<ContractedEdge<ContractedEdge<E>>> denseCaseMST = FredmanTarjanMST.compute(wrapper.vertices, denseCaseEdges);
 
         EdgeList<ContractedEdge<E>> reducedEdges = new EdgeList<>();
-        denseCaseMST.stream().map(ContractedEdge::new).forEach(reducedEdges::append);
+        denseCaseMST.stream().map(e -> e.original).forEach(reducedEdges::append);
         partitions.corruptedEdges.forEach(reducedEdges::append);
         partitionMSF.forEach(reducedEdges::append);
         
@@ -113,7 +116,7 @@ public final class PettieRamachandranMST {
                 continue;
 //            System.out.println("Growing partition for vertex " + current);
             dead[current] = true;
-            SoftPriorityQueue<ContractedEdge<E>> softHeap = SoftHeap.naturallyOrdered(errorRate);
+            SoftPriorityQueue<ContractedEdge<E>> softHeap = FibonacciHeap.naturallyOrdered();
             edges.get(current).forEach(softHeap::insert);
 
             Set<Integer> currentPartition = new HashSet<>();
@@ -161,7 +164,6 @@ public final class PettieRamachandranMST {
                     partitionEdges.append(minEdge);
                 }
             }
-            // Just to be sure
             // Add the subgraph to our list of subgraphs
             partitions.add(Graphs.renameVertices(partitionEdges));
         }

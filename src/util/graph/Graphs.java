@@ -150,8 +150,8 @@ public final class Graphs {
     }
 
     // todo have this take contracted edges
-    public static <E extends DirectedEdge<E> & Comparable<? super E>>
-            Graph<ContractedEdge<E>> contract(int vertices, Iterable<ContractedEdge<E>> span, Iterable<ContractedEdge<E>> edges) {
+    public static <E extends DirectedEdge<E> & Comparable<? super E>, D extends DirectedEdge<D> & Comparable<? super D>>
+            Graph<ContractedEdge<E>> contract(int vertices, Iterable<ContractedEdge<D>> span, Iterable<ContractedEdge<E>> edges) {
 
         // find connected components
         List<List<Integer>> components = components(vertices, span);
