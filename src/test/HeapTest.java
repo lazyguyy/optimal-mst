@@ -45,6 +45,6 @@ public class HeapTest {
         for (int i = 0; i < elements.length; i++) {
         	elements[i] = lpq.pop();
         }
-        //System.out.println(Arrays.toString(elements));
+        System.out.println(Arrays.toString(elements));
     }
 }

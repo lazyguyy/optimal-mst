@@ -25,7 +25,7 @@ public class PrecomputedMSTCollection {
 
     public static PrecomputedMSTCollection computeUpTo(int maxVertices) {
 
-        LOGGER.info(String.format("Computing decision trees for up to %s vertices.", maxVertices));
+        System.out.println(String.format("Computing decision trees for up to %s vertices.", maxVertices));
 
         Map<Integer, Map<Integer, GraphStructureMSTLookup>> lookups = new HashMap<>();
 
@@ -42,7 +42,7 @@ public class PrecomputedMSTCollection {
             	if (edges.size() <= 1)
             		continue;
 
-                LOGGER.info(String.format("Generating decision trees for graphs with %s edges and %s vertices.", edges.size(), vertices));
+            	System.out.println(String.format("Generating decision trees for graphs with %s edges and %s vertices.", edges.size(), vertices));
                 // iterate over all decision tree depths
                 for (int depth = 0; depth < vertices * vertices; depth++) {
 
@@ -89,9 +89,9 @@ public class PrecomputedMSTCollection {
                         }
 
                         // a perfect decision tree has been found
-                        LOGGER.info(edges.stream().map(e -> String.format("(%s, %s)", e.from(), e.to())).collect(Collectors.joining(" ")));
-                        LOGGER.info(String.format("MST: %s", mstIndices));
-                        LOGGER.info(tree.toString());
+                        System.out.println(edges.stream().map(e -> String.format("(%s, %s)", e.from(), e.to())).collect(Collectors.joining(" ")));
+                        System.out.println(String.format("MST: %s", mstIndices));
+                        System.out.println(tree.toString());
                         int structureId = structureId(vertices, edges);
                         lookups.get(vertices).put(structureId, new DecisionTreeMSTLookup(tree, mstIndices));
                         continue edgecombinations;
