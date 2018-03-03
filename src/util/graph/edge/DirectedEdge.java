@@ -1,8 +1,8 @@
 package util.graph.edge;
 
-public interface DirectedEdge<R extends DirectedEdge<R>> {
+public interface DirectedEdge<T, R extends DirectedEdge<T, R>> {
     int from();
     int to();
-    double weight();
+    T weight();
     R reversed();
 }

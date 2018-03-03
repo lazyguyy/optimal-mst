@@ -9,27 +9,26 @@ import util.queue.FibonacciHeap;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 
 public final class PrimMST {
 
-    public static <E extends DirectedEdge<E>> EdgeList<E> compute(int vertices, Iterable<E> edges) {
+    public static <T extends Comparable<? super T>, E extends DirectedEdge<T, E>> EdgeList<E> compute(int vertices, Iterable<E> edges) {
 
-        double[] distances = new double[vertices];
         boolean[] visited = new boolean[vertices];
+
+        List<T> distances = new ArrayList<>();
         List<E> lightest = new ArrayList<>();
 
-        for (int i = 0; i < vertices; i++)
+        for (int i = 0; i < vertices; i++) {
             lightest.add(null);
-
-        for (int i = 0; i < vertices; i++)
-            distances[i] = Double.POSITIVE_INFINITY;
+            distances.add(null);
+        }
 
         AdjacencyList<E> adjacency = AdjacencyList.of(vertices, edges);
 
-        ExtendedPriorityQueue<Integer> queue = new FibonacciHeap<>(Comparator.comparingDouble(i -> distances[i]));
-
-        distances[0] = 0;
-        lightest.set(0, null);
+        Comparator<Integer> nullsLast = Comparator.comparing(distances::get, Comparator.nullsLast(T::compareTo));
+        ExtendedPriorityQueue<Integer> queue = new FibonacciHeap<>(nullsLast);
 
         long[] ids = new long[vertices];
         for (int i = 0; i < vertices; i++)
@@ -40,14 +39,18 @@ public final class PrimMST {
             visited[vertex] = true;
 
             for (E e : adjacency.get(vertex)) {
-                if (!visited[e.to()] && distances[e.to()] > e.weight()) {
-                    distances[e.to()] = e.weight();
-                    lightest.set(e.to(), e);
-                    queue.decrease(ids[e.to()]);
+                if (!visited[e.to()]) {
+                    if (distances.get(e.to()) == null || distances.get(e.to()).compareTo(e.weight()) > 0) {
+                        distances.set(e.to(), e.weight());
+                        lightest.set(e.to(), e);
+                        queue.decrease(ids[e.to()]);
+                    }
                 }
             }
         }
 
-        return new EdgeList<>(lightest.subList(1, vertices));
+        EdgeList<E> result = new EdgeList<>();
+        lightest.stream().filter(Objects::nonNull).forEach(result::append);
+        return result;
     }
 }

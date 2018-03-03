@@ -9,12 +9,14 @@ import util.log.Logger;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class Launcher {
 
-    private static Map<String, MinimumSpanningTreeAlgorithm<WeightedEdge>> algorithms = new HashMap<>();
+    private static Map<String, MinimumSpanningTreeAlgorithm<WeightedEdge<Double>>> algorithms = new HashMap<>();
     static {
         algorithms.put("prim", PrimMST::compute);
         algorithms.put("kruskal", KruskalMST::compute);
@@ -31,23 +33,25 @@ public class Launcher {
     public static void main(String[] args) {
 
         // disable / enable logging on root logger
-        Logger.setActive(true);
+        Logger.setActive(false);
 
-        MinimumSpanningTreeAlgorithm<WeightedEdge> alg = PettieRamachandranMST::compute;
-        if (args.length == 1) {
-            String first = args[0];
-            if (!algorithms.containsKey(first)) {
-                printUsage();
-                return;
+        List<MinimumSpanningTreeAlgorithm<WeightedEdge<Double>>> algs = new ArrayList<>();
+        if (args.length == 0)
+            algs.add(PettieRamachandranMST::compute);
+
+        for (String s : args) {
+            if (algorithms.containsKey(s)) {
+                algs.add(algorithms.get(s));
+                continue;
             }
-            alg = algorithms.get(first);
-        } else if (args.length > 1) {
+            if ("log".equals(s))
+                Logger.setActive(true);
             printUsage();
             return;
         }
 
         int vertices = 0;
-        EdgeList<WeightedEdge> edges = new EdgeList<>();
+        EdgeList<WeightedEdge<Double>> edges = new EdgeList<>();
         try (BufferedReader br = new BufferedReader(new InputStreamReader(System.in))) {
             String line;
             while ((line = br.readLine()) != null) {
@@ -55,7 +59,7 @@ public class Launcher {
                 int from = Integer.parseInt(words[0]);
                 int to = Integer.parseInt(words[1]);
                 double weight = Double.parseDouble(words[2]);
-                edges.append(new WeightedEdge(from, to, weight));
+                edges.append(new WeightedEdge<>(from, to, weight));
                 vertices = Math.max(vertices, Math.max(from, to) + 1);
             }
         } catch (IOException e) {
@@ -63,11 +67,15 @@ public class Launcher {
             return;
         }
 
-        EdgeList<WeightedEdge> mst = alg.findMST(vertices, edges);
+        for (MinimumSpanningTreeAlgorithm<WeightedEdge<Double>> alg : algs) {
+            long now = System.currentTimeMillis();
+            EdgeList<WeightedEdge<Double>> mst = alg.findMST(vertices, edges);
 
-        for (WeightedEdge edge : mst) {
-            System.out.printf("%s %s  %s\n", edge.from(), edge.to(), edge.weight());
+            for (WeightedEdge<Double> edge : mst) {
+                System.out.printf("%s %s  %s\n", edge.from(), edge.to(), edge.weight());
+            }
+            System.out.printf("Total weight: %s\n", mst.stream().mapToDouble(WeightedEdge::weight).sum());
+            System.out.printf("Took %s ms\n\n", System.currentTimeMillis() - now);
         }
-        System.out.println("Total weight: " + mst.weight());
     }
 }

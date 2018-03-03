@@ -1,13 +1,13 @@
 package util.graph.edge;
 
-public final class RenamedEdge<E extends DirectedEdge<E> & Comparable<? super E>> extends AbstractRenamedEdge<E, RenamedEdge<E>> implements Comparable<RenamedEdge<E>> {
+public final class RenamedEdge<T, E extends DirectedEdge<T, E> & Comparable<? super E>> extends AbstractRenamedEdge<T, E, RenamedEdge<T, E>> implements Comparable<RenamedEdge<T, E>> {
 
     public RenamedEdge(final int from, final int to, final E original) {
         super(from, to, original);
     }
 
     @Override
-    public RenamedEdge<E> reversed() {
+    public RenamedEdge<T, E> reversed() {
         return new RenamedEdge<>(to, from, original);
     }
 
@@ -17,7 +17,7 @@ public final class RenamedEdge<E extends DirectedEdge<E> & Comparable<? super E>
     }
 
     @Override
-    public int compareTo(final RenamedEdge<E> other) {
+    public int compareTo(final RenamedEdge<T, E> other) {
         return original.compareTo(other.original);
     }
 }

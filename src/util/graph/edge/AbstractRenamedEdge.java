@@ -2,7 +2,7 @@ package util.graph.edge;
 
 import java.util.Objects;
 
-abstract class AbstractRenamedEdge<E extends DirectedEdge<E>, R extends DirectedEdge<R>> implements DirectedEdge<R> {
+abstract class AbstractRenamedEdge<T, E extends DirectedEdge<T, E>, R extends DirectedEdge<T, R>> implements DirectedEdge<T, R> {
     protected final int from;
     protected final int to;
     public final E original;
@@ -24,7 +24,7 @@ abstract class AbstractRenamedEdge<E extends DirectedEdge<E>, R extends Directed
     }
 
     @Override
-    public double weight() {
+    public T weight() {
         return original.weight();
     }
 
@@ -41,7 +41,7 @@ abstract class AbstractRenamedEdge<E extends DirectedEdge<E>, R extends Directed
     public boolean equals(final Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        AbstractRenamedEdge<?, ?> that = (AbstractRenamedEdge<?, ?>) o;
+        AbstractRenamedEdge<?, ?, ?> that = (AbstractRenamedEdge<?, ?, ?>) o;
         return from == that.from && to == that.to && original == that.original;
     }
 

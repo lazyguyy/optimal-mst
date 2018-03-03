@@ -11,33 +11,33 @@ import java.util.*;
 
 public final class FredmanTarjanMST {
 
-    public static <E extends DirectedEdge<E> & Comparable<? super E>>
+    public static <T extends Comparable<? super T>, E extends DirectedEdge<T, E> & Comparable<? super E>>
             EdgeList<E> compute(int vertices, Iterable<E> edges) {
-        EdgeList<ContractedEdge<E>> wrapper = new EdgeList<>();
+        EdgeList<ContractedEdge<T, E>> wrapper = new EdgeList<>();
         for (E e : edges)
             wrapper.append(new ContractedEdge<>(e));
         return recurse(vertices, wrapper);
     }
 
-    private static <E extends DirectedEdge<E> & Comparable<? super E>>
-            EdgeList<E> recurse(int vertices, EdgeList<ContractedEdge<E>> edges) {
+    private static <T extends Comparable<? super T>, E extends DirectedEdge<T, E> & Comparable<? super E>>
+            EdgeList<E> recurse(int vertices, EdgeList<ContractedEdge<T, E>> edges) {
 
         if (vertices < 2)
             return new EdgeList<>();
 
-        double[] distances = new double[vertices];
-        List<ContractedEdge<E>> predecessorEdge = new ArrayList<>();
-        for (int i = 0; i < vertices; i++)
+        List<T> distances = new ArrayList<>();
+        List<ContractedEdge<T, E>> predecessorEdge = new ArrayList<>();
+        for (int i = 0; i < vertices; i++) {
             predecessorEdge.add(null);
+            distances.add(null);
+        }
 
-        for (int i = 0; i < vertices; i++)
-            distances[i] = Double.POSITIVE_INFINITY;
-
-        AdjacencyList<ContractedEdge<E>> adjacency = AdjacencyList.of(vertices, edges);
+        AdjacencyList<ContractedEdge<T, E>> adjacency = AdjacencyList.of(vertices, edges);
 
         int edgeCount = edges.size();
 
-        ExtendedPriorityQueue<Integer> queue = new FibonacciHeap<>(Comparator.comparingDouble(i -> distances[i]));
+        Comparator<Integer> nullsLast = Comparator.comparing(distances::get, Comparator.nullsLast(T::compareTo));
+        ExtendedPriorityQueue<Integer> queue = new FibonacciHeap<>(nullsLast);
 
         long[] ids = new long[vertices];
         for (int i = 0; i < vertices; i++)
@@ -78,11 +78,14 @@ public final class FredmanTarjanMST {
                         break;
                 }
 
-                for (ContractedEdge<E> e : adjacency.get(vertex)) {
-                    if (discoveredInIteration[e.to()] == -1 && distances[e.to()] > e.weight()) {
-                        distances[e.to()] = e.weight();
-                        predecessorEdge.set(e.to(), e);
-                        queue.decrease(ids[e.to()]);
+                for (ContractedEdge<T, E> e : adjacency.get(vertex)) {
+                    // relax newly discovered vertices
+                    if (discoveredInIteration[e.to()] == -1) {
+                        if (distances.get(e.to()) == null || distances.get(e.to()).compareTo(e.weight()) > 0) {
+                            distances.set(e.to(), e.weight());
+                            predecessorEdge.set(e.to(), e);
+                            queue.decrease(ids[e.to()]);
+                        }
                     }
                 }
             }
@@ -90,8 +93,8 @@ public final class FredmanTarjanMST {
         }
 
         // find non-null edges
-        HashSet<ContractedEdge<E>> forestEdges = new HashSet<>();
-        for (ContractedEdge<E> e : predecessorEdge) {
+        HashSet<ContractedEdge<T, E>> forestEdges = new HashSet<>();
+        for (ContractedEdge<T, E> e : predecessorEdge) {
             if (e == null)
                 continue;
             forestEdges.add(e);
@@ -106,10 +109,11 @@ public final class FredmanTarjanMST {
             return markedEdges;
 
         // otherwise we contract the components
-        Graph<ContractedEdge<E>> contracted = Graphs.contract(vertices, forestEdges, edges);
+        Graph<ContractedEdge<T, ContractedEdge<T, E>>> contracted = Graphs.contract(vertices, forestEdges, edges);
+        EdgeList<ContractedEdge<T, E>> contractedEdges = Graphs.flatten(contracted.edges);
 
         // and recurse on the contracted graph
-        markedEdges.meld(recurse(contracted.vertices, contracted.edges));
+        markedEdges.meld(recurse(contracted.vertices, contractedEdges));
         return markedEdges;
     }
 }

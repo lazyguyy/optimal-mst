@@ -10,7 +10,7 @@ import java.util.Collections;
 
 public final class KruskalMST {
 
-    public static <E extends DirectedEdge<E> & Comparable<? super E>> EdgeList<E> compute(int vertices, Iterable<E> edges) {
+    public static <T, E extends DirectedEdge<T, E> & Comparable<? super E>> EdgeList<E> compute(int vertices, Iterable<E> edges) {
 
         ArrayList<E> sorted = new ArrayList<>();
         edges.forEach(sorted::add);

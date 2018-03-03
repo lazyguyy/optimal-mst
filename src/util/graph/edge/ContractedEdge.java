@@ -1,6 +1,6 @@
 package util.graph.edge;
 
-public final class ContractedEdge<E extends DirectedEdge<E> & Comparable<? super E>> extends AbstractRenamedEdge<E, ContractedEdge<E>> implements Comparable<ContractedEdge<E>> {
+public final class ContractedEdge<T, E extends DirectedEdge<T, E> & Comparable<? super E>> extends AbstractRenamedEdge<T, E, ContractedEdge<T, E>> implements Comparable<ContractedEdge<T, E>> {
 
     public ContractedEdge(final E original) {
         super(original.from(), original.to(), original);
@@ -11,7 +11,7 @@ public final class ContractedEdge<E extends DirectedEdge<E> & Comparable<? super
     }
 
     @Override
-    public ContractedEdge<E> reversed() {
+    public ContractedEdge<T, E> reversed() {
         return new ContractedEdge<>(to, from, original);
     }
 
@@ -21,7 +21,7 @@ public final class ContractedEdge<E extends DirectedEdge<E> & Comparable<? super
     }
 
     @Override
-    public int compareTo(final ContractedEdge<E> other) {
+    public int compareTo(final ContractedEdge<T, E> other) {
         return original.compareTo(other.original);
     }
 }

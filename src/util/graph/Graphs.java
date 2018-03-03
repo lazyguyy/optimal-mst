@@ -7,7 +7,7 @@ import java.util.stream.Collectors;
 
 public final class Graphs {
 
-    public static <E extends DirectedEdge<E>> int[] componentMapping(int vertices, Iterable<E> edges) {
+    public static <T, E extends DirectedEdge<T, E>> int[] componentMapping(int vertices, Iterable<E> edges) {
         return componentMapping(vertices, components(vertices, edges));
     }
 
@@ -22,7 +22,7 @@ public final class Graphs {
         return componentMapping;
     }
 
-    public static <E extends DirectedEdge<E>> List<List<Integer>> components(int vertices, Iterable<E> edges) {
+    public static <T, E extends DirectedEdge<T, E>> List<List<Integer>> components(int vertices, Iterable<E> edges) {
 
         // generate adjacency list
         AdjacencyList<E> adjacency = AdjacencyList.of(vertices, edges);
@@ -53,7 +53,7 @@ public final class Graphs {
         return components;
     }
 
-    public static <E extends DirectedEdge<E>> EdgeList<E> sortEdges(int vertices, Iterable<E> edges) {
+    public static <T, E extends DirectedEdge<T, E>> EdgeList<E> sortEdges(int vertices, Iterable<E> edges) {
         AdjacencyList<E> firstPass = new AdjacencyList<>(vertices);
         AdjacencyList<E> secondPass = new AdjacencyList<>(vertices);
 
@@ -75,7 +75,8 @@ public final class Graphs {
         return result;
     }
 
-    public static <E extends DirectedEdge<E>> EdgeList<E> removeDuplicates(int vertices, Iterable<E> edges) {
+    public static <T, E extends DirectedEdge<T, E> & Comparable<? super E>> EdgeList<E>
+            removeDuplicates(int vertices, Iterable<E> edges) {
 
         EdgeList<E> sorted = sortEdges(vertices, edges);
         EdgeList<E> result = new EdgeList<>();
@@ -95,7 +96,7 @@ public final class Graphs {
                 lightest = e;
             }
             // update lightest if we find a better candidate
-            if (lightest.weight() > e.weight())
+            if (lightest.compareTo(e) > 0)
                 lightest = e;
         }
         // append last result
@@ -110,10 +111,10 @@ public final class Graphs {
      * @param edges The Iterable whose vertices shall be renamed
      * @return Returns an AdjacencyList of renamed Edges
      */
-    public static <E extends DirectedEdge<E> & Comparable<? super E>>
-            Graph<RenamedEdge<E>> renameVertices(Iterable<E> edges) {
+    public static <T, E extends DirectedEdge<T, E> & Comparable<? super E>>
+            Graph<RenamedEdge<T, E>> renameVertices(Iterable<E> edges) {
         Map<Integer, Integer> renamedVertices = new HashMap<>();
-        EdgeList<RenamedEdge<E>> renamedEdges = new EdgeList<>();
+        EdgeList<RenamedEdge<T, E>> renamedEdges = new EdgeList<>();
         int vertex = 0;
         for (E edge : edges) {
             int from = edge.from(), to = edge.to();
@@ -130,7 +131,7 @@ public final class Graphs {
         return new Graph<>(vertex, renamedEdges);
     }
 
-    public static <E extends DirectedEdge<E> & Comparable<? super E>>
+    public static <T, E extends DirectedEdge<T, E> & Comparable<? super E>>
             Set<E> lightestEdgePerVertex(int vertices, Iterable<E> edges) {
 
         ArrayList<E> lightest = new ArrayList<>(vertices);
@@ -149,9 +150,8 @@ public final class Graphs {
         return lightest.stream().filter(Objects::nonNull).collect(Collectors.toCollection(HashSet::new));
     }
 
-    // todo have this take contracted edges
-    public static <E extends DirectedEdge<E> & Comparable<? super E>, D extends DirectedEdge<D> & Comparable<? super D>>
-            Graph<ContractedEdge<E>> contract(int vertices, Iterable<ContractedEdge<D>> span, Iterable<ContractedEdge<E>> edges) {
+    public static <T, S, E extends DirectedEdge<T, E> & Comparable<? super E>, D extends DirectedEdge<S, D>>
+            Graph<ContractedEdge<T, E>> contract(int vertices, Iterable<D> span, Iterable<E> edges) {
 
         // find connected components
         List<List<Integer>> components = components(vertices, span);
@@ -161,15 +161,27 @@ public final class Graphs {
         int componentCount = components.size();
 
         // contract components
-        EdgeList<ContractedEdge<E>> contracted = new EdgeList<>();
-        for (ContractedEdge<E> ce : edges) {
-            if (component[ce.from()] == component[ce.to()])
+        EdgeList<ContractedEdge<T, E>> contracted = new EdgeList<>();
+        for (E e : edges) {
+            if (component[e.from()] == component[e.to()])
                 continue;
-            contracted.append(new ContractedEdge<>(component[ce.from()], component[ce.to()], ce.original));
+            contracted.append(new ContractedEdge<>(component[e.from()], component[e.to()], e));
         }
         // remove duplicates
-        EdgeList<ContractedEdge<E>> remainingEdges = Graphs.removeDuplicates(componentCount, contracted);
+        EdgeList<ContractedEdge<T, E>> remainingEdges = Graphs.removeDuplicates(componentCount, contracted);
 
         return new Graph<>(componentCount, remainingEdges);
+    }
+
+    public static <T, E extends DirectedEdge<T, E> & Comparable<? super E>>
+            EdgeList<ContractedEdge<T, E>> flatten(EdgeList<ContractedEdge<T, ContractedEdge<T, E>>> list) {
+        EdgeList<ContractedEdge<T, E>> flat = new EdgeList<>();
+        list.forEach(e -> flat.append(new ContractedEdge<>(e.from(), e.to(), e.original.original)));
+        return flat;
+    }
+
+    public static <T, E extends DirectedEdge<T, E> & Comparable<? super E>>
+            Graph<ContractedEdge<T, E>> flatten(Graph<ContractedEdge<T, ContractedEdge<T, E>>> graph) {
+        return new Graph<>(graph.vertices, flatten(graph.edges));
     }
 }

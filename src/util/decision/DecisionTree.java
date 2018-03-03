@@ -1,7 +1,6 @@
 package util.decision;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 
 class DecisionTree {
@@ -80,7 +79,7 @@ class DecisionTree {
         int length = (1 << (depth + 1)) - 1;
 
         List<Comparison> comparisons = new ArrayList<>();
-        Iterators.ascendingIntPairs(edges).forEach(p -> comparisons.add(new Comparison(p.i, p.j)));
+        Iterators.ascendingIntPairs(edges, Comparison::new).forEach(comparisons::add);
 
         return () -> Iterators.combinations(length, comparisons)
             .map(l -> new DecisionTree(l.toArray(new Comparison[length])))
