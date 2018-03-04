@@ -1,5 +1,10 @@
 package util.disjointset;
 
+/**
+ * 
+ * Provides an implementation of the DisjointSet interface.
+ * All operations run in near-constant-time (bounded by the inverse Ackermann function)
+ */
 public class OptimalUnionFind implements DisjointSet {
 
     // positive value: parent index
@@ -7,6 +12,10 @@ public class OptimalUnionFind implements DisjointSet {
     private final int[] info;
     private int distinct;
 
+    /**
+     * Creates a new OptimalUnionFind data structure of the specified size
+     * @param size the size of the OptimalUnionFind data structure
+     */
     public OptimalUnionFind(final int size) {
         this.distinct = size;
         info = new int[size];

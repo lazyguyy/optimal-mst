@@ -5,12 +5,33 @@ import util.graph.edge.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * 
+ * Provides a lot of utility methods for working with graphs
+ */
 public final class Graphs {
 
+	/**
+	 * Returns an array representing a connected component mapping. The i-th entry is the index of the connected component
+	 * which the i-th vertex is part of
+	 * @param <T> the weight type of the edges in the graph
+	 * @param <E> the edge type of the edges in the graph
+	 * @param vertices the number of vertices in the graph
+	 * @param edges an {@link Iterable} of all edges in the graph
+	 * @return an array representing a connected component mapping as described above
+	 */
     public static <T, E extends DirectedEdge<T, E>> int[] componentMapping(int vertices, Iterable<E> edges) {
         return componentMapping(vertices, components(vertices, edges));
     }
 
+    /**
+     * Creates an array represnting a connected component mapping. The i-th entry is the index of the connected component
+     * which the i-th vertex is part of
+     * @param vertices the number of vertices in the graph
+     * @param components a {@link List} of {@link List} of {@link Integer} where the i-th {@link List} contains the indices of all
+     * vertices that belong to the i-th component
+     * @return an array representing a connected component mapping as described above 
+     */
     public static int[] componentMapping(int vertices, List<List<Integer>> components) {
 
         int componentMapping[] = new int[vertices];
@@ -22,6 +43,17 @@ public final class Graphs {
         return componentMapping;
     }
 
+    /**
+     * Takes a graph specified by a number of vertices and an {@link Iterable} of edges and returns a {@link List}
+     * of {@link List} of {@link Integer}, where the i-th {@link List} contains the indices of all vertices that
+     * belong to the i-th connected component.
+     * @param <T> the weight type of the edges of the graph
+     * @param <E> the edge type of the edges of the graph
+     * @param vertices the number of vertices of the graph
+     * @param edges an {@link Iterable} of edges of the graph
+     * @return a {@link List} of {@link List} of {@link Integer} representing the connected components of the graph
+     * as described above
+     */
     public static <T, E extends DirectedEdge<T, E>> List<List<Integer>> components(int vertices, Iterable<E> edges) {
 
         // generate adjacency list
@@ -53,6 +85,15 @@ public final class Graphs {
         return components;
     }
 
+    /**
+     * Takes a graph specified by the number of vertices and an {@link Iterable} of edges and returns an
+     * {@link EdgeList} containing all edges in a sorted manner.
+     * @param <T> the weight type of the edges of the graph
+     * @param <E> the edge type of the edges of the graph
+     * @param vertices the number of vertices in the graph
+     * @param edges an {@link Iterable} of edges in the graph
+     * @return an {@link EdgeList} containing all edges of the original graph, but sorted
+     */
     public static <T, E extends DirectedEdge<T, E>> EdgeList<E> sortEdges(int vertices, Iterable<E> edges) {
         AdjacencyList<E> firstPass = new AdjacencyList<>(vertices);
         AdjacencyList<E> secondPass = new AdjacencyList<>(vertices);
@@ -75,6 +116,15 @@ public final class Graphs {
         return result;
     }
 
+    /**
+     * Removes multiple edges between two vertices. If there are multiple edges between two vertices, 
+     * only the lightest edge is kept.
+     * @param <T> the weight type of the edges of the graph
+     * @param <E> the edge type of the edges of the graph
+     * @param vertices the number of vertices of the graph
+     * @param edges an {@link Iterable} of edges of the graph
+     * @return an {@link EdgeList} containing no duplicates of edges
+     */
     public static <T, E extends DirectedEdge<T, E> & Comparable<? super E>> EdgeList<E>
             removeDuplicates(int vertices, Iterable<E> edges) {
 
@@ -107,9 +157,12 @@ public final class Graphs {
     }
 
     /**
-     * Takes an Iterable of Contracted Edges and renames the vertices.
-     * @param edges The Iterable whose vertices shall be renamed
-     * @return Returns an AdjacencyList of renamed Edges
+     * Takes an {@link Iterable} of edges and renames the vertices, so that all vertex indices
+     * are between 0 and vertices - 1
+     * @param <T> the weight type of the edges of the graph
+     * @param <E> the edge type of the edges of the graph
+     * @param edges the {@link Iterable} whose vertices shall be renamed
+     * @return a {@link Graph} representing the graph but with renamed edges
      */
     public static <T, E extends DirectedEdge<T, E> & Comparable<? super E>>
             Graph<RenamedEdge<T, E>> renameVertices(Iterable<E> edges) {
@@ -131,6 +184,15 @@ public final class Graphs {
         return new Graph<>(vertex, renamedEdges);
     }
 
+    /**
+     * Takes a graph specified by the number of vertices and an {@link Iterable} of edges.
+     * For each vertex we take the outgoing edge with smallest weight and return a {@link Set} of all of these edges
+     * @param <T> the weight type of the edges of the graph
+     * @param <E> the edge type of the edges of the graph
+     * @param vertices the number of vertices of the graph
+     * @param edges an {@link Iterable} of edges of the graph
+     * @return a {@link Set} containing only the lightest edge per vertex
+     */
     public static <T, E extends DirectedEdge<T, E> & Comparable<? super E>>
             Set<E> lightestEdgePerVertex(int vertices, Iterable<E> edges) {
 
@@ -150,6 +212,19 @@ public final class Graphs {
         return lightest.stream().filter(Objects::nonNull).collect(Collectors.toCollection(HashSet::new));
     }
 
+    /**
+     * Contracts a graph specified by the number of vertices and an {@link Iterable} of edges along the edges
+     * given by the {@link Iterable} span. Each group of vertices that is connected by some of the edges of span
+     * will be replaced by a single vertex in the contracted graph.
+     * @param <T> the weight type of the edges of the graph
+     * @param <E> the edge type of the edges of the graph
+     * @param <S> the weight type of the edges along which we contract
+     * @param <D> the edge type of the edges along which we contract
+     * @param vertices the number of vertices in the graph
+     * @param span an {@link Iterable} along which the graph shall be contracted
+     * @param edges an {@link Iterable} of edges of the graph
+     * @return the contracted graph as a {@link Graph}
+     */
     public static <T, S, E extends DirectedEdge<T, E> & Comparable<? super E>, D extends DirectedEdge<S, D>>
             Graph<ContractedEdge<T, E>> contract(int vertices, Iterable<D> span, Iterable<E> edges) {
 
@@ -173,13 +248,27 @@ public final class Graphs {
         return new Graph<>(componentCount, remainingEdges);
     }
 
+    /**
+     * Takes an {@link EdgeList} of at least doubly contracted edges and removes the second-outermost layer of contracted edges
+     * @param <T> the weight type of the edges of the graph
+     * @param <E> the edge type of the edges of the graph
+     * @param list the {@link EdgeList} of at least doubly contracted edges
+     * @return the flattened list of edges as an {@link EdgeList}
+     */
     public static <T, E extends DirectedEdge<T, E> & Comparable<? super E>>
             EdgeList<ContractedEdge<T, E>> flatten(EdgeList<ContractedEdge<T, ContractedEdge<T, E>>> list) {
         EdgeList<ContractedEdge<T, E>> flat = new EdgeList<>();
         list.forEach(e -> flat.append(new ContractedEdge<>(e.from(), e.to(), e.original.original)));
         return flat;
     }
-
+    
+    /**
+     * Takes a {@link Graph} of at least doubly contracted edges and removes the second-outermost layer of contracted edges
+     * @param <T> the weight type of the edges of the graph
+     * @param <E> the edge type of the edges of the graph
+     * @param graph the {@link Graph} of at least doubly contracted edges
+     * @return the flattened {@link Graph}
+     */
     public static <T, E extends DirectedEdge<T, E> & Comparable<? super E>>
             Graph<ContractedEdge<T, E>> flatten(Graph<ContractedEdge<T, ContractedEdge<T, E>>> graph) {
         return new Graph<>(graph.vertices, flatten(graph.edges));

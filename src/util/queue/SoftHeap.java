@@ -69,8 +69,6 @@ public class SoftHeap<T> implements SoftPriorityQueue<T>, Meldable<SoftHeap<T>> 
         }
         corruptedElements.remove(element);
         size--;
-        System.out.println("Removed " + element);
-        System.out.println(this);
         return element;
     }
 
@@ -78,8 +76,6 @@ public class SoftHeap<T> implements SoftPriorityQueue<T>, Meldable<SoftHeap<T>> 
     public void insert(T element) {
         SoftHeap<T> newHeap = new SoftHeap<T>(errorRate, comparator, element);
         meld(newHeap);
-        System.out.println("Inserted " + element);
-        System.out.println(this);
     }
 
     /**

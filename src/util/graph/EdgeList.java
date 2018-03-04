@@ -13,14 +13,27 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+/**
+ * 
+ * A linked List of Edges for a Graph.
+ * Supports melding of two EdgeLists in O(1)
+ * @param <E> the edge type of the graph
+ */
 public final class EdgeList<E extends DirectedEdge<?, E>> implements Meldable<EdgeList<E>>, Iterable<E> {
 
     private Node<E> first;
     private Node<E> last;
     private int size = 0;
 
+    /**
+     * Creates an empty {@link EdgeList}
+     */
     public EdgeList() {}
 
+    /**
+     * Takes another {@link EdgeList} an appends it to this one
+     * @param other the {@link EdgeList} to be appended
+     */
     public EdgeList(Iterable<? extends E> other) {
         other.forEach(this::append);
     }
@@ -42,10 +55,19 @@ public final class EdgeList<E extends DirectedEdge<?, E>> implements Meldable<Ed
         other.clear();
     }
 
+    /**
+     * Returns the number of edges in this {@link EdgeList}.
+     * @return the number of edges in this {@link EdgeList}
+     */
     public int size() {
         return size;
     }
 
+    /**
+     * Takes an edge and appends it to this {@link EdgeList}.
+     * @param <E> the type of edge
+     * @param edge the edge to be appended to this {@link EdgeList}
+     */
     public void append(final E edge) {
         checkNotNull(edge);
 
@@ -60,6 +82,11 @@ public final class EdgeList<E extends DirectedEdge<?, E>> implements Meldable<Ed
         size++;
     }
 
+    /**
+     * Takes an edge and prepends it to this {@link EdgeList}.
+     * @param <E> the type of edge
+     * @param edge the edge to be prepended to this {@link EdgeList}
+     */
     public void prepend(final E edge) {
         checkNotNull(edge);
 
@@ -74,11 +101,18 @@ public final class EdgeList<E extends DirectedEdge<?, E>> implements Meldable<Ed
         size++;
     }
 
+    /**
+     * Clears the {@link EdgeList}
+     */
     public void clear() {
         first = last = null;
         size = 0;
     }
 
+    /**
+     * Returns a {@link Stream} of the Edges of this {@link EdgeList}.
+     * @return a {@link Stream} of the Edges of this {@link EdgeList}
+     */
     public Stream<E> stream() {
         return StreamSupport.stream(spliterator(), false);
     }
@@ -142,10 +176,19 @@ public final class EdgeList<E extends DirectedEdge<?, E>> implements Meldable<Ed
         }
     }
 
+    /**
+     * Checks whether an Edge is null
+     * @param edge the edge to be checked for null
+     */
     private void checkNotNull(final E edge) {
         if (edge == null) throw new IllegalArgumentException("Edges may not be null.");
     }
 
+    /**
+     * 
+     * This class represents a node of the linked list
+     * @param <E> the edge type of the graph
+     */
     private static class Node<E extends DirectedEdge<?, E>> {
         final E edge;
         Node<E> prev;
