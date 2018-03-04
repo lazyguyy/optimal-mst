@@ -1,0 +1,43 @@
+apply plugin: 'application'
+apply plugin: 'java'
+
+description = "Optimal MST Algorithm as described by Pettie & Ramachandran"
+version = "1.0"
+mainClassName = "main.Launcher"
+
+def publishDir = '../dist'
+def publishConf = {
+    archiveName = "optimal-mst.$extension"
+    destinationDir = file(publishDir)
+}
+
+// main configuration
+
+sourceSets {
+    main.java.srcDirs = ["../src"]
+}
+
+jar publishConf
+distZip publishConf
+distTar publishConf
+
+installDist {
+    destinationDir = file("../install")
+}
+
+javadoc {
+    source = sourceSets.main.allJava
+    classpath = configurations.compile
+    destinationDir = file("../docs")
+}
+
+task unpublish(type: Delete) {
+  delete publishDir
+}
+
+task publish {
+    dependsOn 'clean'
+    dependsOn 'jar'
+    dependsOn 'javadoc'
+    tasks.findByName('jar').mustRunAfter 'clean'
+}
