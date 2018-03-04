@@ -114,7 +114,7 @@ public final class EdgeList<E extends DirectedEdge<?, E>> implements Meldable<Ed
     }
 
     /**
-     * Creates an array of the edges of this {@link EdgeList} using the provided generator
+     * Creates an array of the edges of this {@link EdgeList} using the provided {@code generator}
      * @param generator a function which produces a new array of the desired type and the provided length
      * @return an array containing the edges of this {@link EdgeList}
      */
@@ -122,14 +122,33 @@ public final class EdgeList<E extends DirectedEdge<?, E>> implements Meldable<Ed
         return stream().toArray(generator);
     }
 
+    /**
+     * Returns a new {@code Collection} of the elements of this {@link EdgeList} using the provided factory.
+     * @param collectionFactory a {@code Supplier} which returns a new, empty {@code Collection} of the appropriate type
+     * @param <C> the type of the resulting {@code Collection}
+     * @return a {@code Collection} of the elements of this {@link EdgeList}
+     */
     public <C extends Collection<E>> C collect(Supplier<C> collectionFactory) {
         return stream().collect(Collectors.toCollection(collectionFactory));
     }
 
-    public <T, C extends Collection<T>> C mapCollect(Function<E, T> func, Supplier<C> collectionFactory) {
-        return stream().map(func).collect(Collectors.toCollection(collectionFactory));
+    /**
+     * Returns a new {@code Collection} of the elements of this {@link EdgeList} using the provided factory after
+     * transforming each element using the provided function.
+     * @param mapper the mapping function
+     * @param collectionFactory a {@code Supplier} which returns a new, empty {@code Collection} of the appropriate type
+     * @param <T> the result type of the mapping function
+     * @param <C> the type of the resulting {@code Collection}
+     * @return a {@code Collection} containing the mapped elements of this {@link EdgeList}
+     */
+    public <T, C extends Collection<T>> C mapCollect(Function<E, T> mapper, Supplier<C> collectionFactory) {
+        return stream().map(mapper).collect(Collectors.toCollection(collectionFactory));
     }
 
+    /**
+     * Returns a string representation of this {@link EdgeList}.
+     * @return a string representation of this {@link EdgeList}.
+     */
     @Override
     public String toString() {
         return stream()
@@ -137,6 +156,12 @@ public final class EdgeList<E extends DirectedEdge<?, E>> implements Meldable<Ed
                 .collect(java.util.stream.Collectors.joining(",\n ", "[", "]"));
     }
 
+    /**
+     * Checks if another object is equal to this {@link EdgeList}. Two instances of {@link EdgeList} are equal
+     * iff they have the same size and contain the same elements in identical order.
+     * @param o object to be tested for equality
+     * @return true if the argument is equal to this {@link EdgeList}.
+     */
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -150,6 +175,10 @@ public final class EdgeList<E extends DirectedEdge<?, E>> implements Meldable<Ed
         return true;
     }
 
+    /**
+     * Returns an {@code Iterator} over the elements in this {@link EdgeList}.
+     * @return an {@code Iterator} over the elements in this {@link EdgeList}.
+     */
     @Override
     public Iterator<E> iterator() {
         return new Itr<>(this);

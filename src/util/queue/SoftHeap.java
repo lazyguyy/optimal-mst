@@ -218,10 +218,10 @@ public class SoftHeap<T> implements SoftPriorityQueue<T>, Meldable<SoftHeap<T>> 
     
     public String toString() {
     	StringBuilder sb = new StringBuilder();
-    	sb.append("SoftHeap of rank " + rank + " with " + size + " elements\n");
+    	sb.append("SoftHeap of rank ").append(rank).append(" with ").append(size).append(" elements\n");
     	for (BinaryHeap heap = queue; heap != null; heap = heap.next) {
-    		sb.append(heap.prev + " - " + heap + " - " + heap.next + "\n");
-    		sb.append("Suffix-Min points to " + heap.sufMin + "\n");
+    		sb.append(heap.prev).append(" - ").append(heap).append(" - ").append(heap.next).append("\n");
+    		sb.append("Suffix-Min points to ").append(heap.sufMin).append("\n");
     	}
     	return sb.toString();
     }

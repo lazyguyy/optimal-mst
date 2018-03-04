@@ -130,7 +130,7 @@ public final class PrecomputedMSTCollection implements Serializable {
 
     // structure id k of a graph g:
     // bit (i * vertices) + j of k is set iff there is an edge between vertices i and j in g
-    // this only works for graphs with up to 5 vertices :)
+    // todo this only works for graphs with up to 5 vertices :)
     private static <T, E extends DirectedEdge<T, E>> int structureId(int vertices, Iterable<E> edges) {
         int id = 0;
         for (E e : edges) {
