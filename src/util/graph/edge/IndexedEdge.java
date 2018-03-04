@@ -3,7 +3,7 @@ package util.graph.edge;
 
 import java.util.Objects;
 
-public final class IndexedEdge<E extends DirectedEdge<E> & Comparable<? super E>> implements DirectedEdge<IndexedEdge<E>>, Comparable<IndexedEdge<E>> {
+public final class IndexedEdge<T, E extends DirectedEdge<T, E> & Comparable<? super E>> implements DirectedEdge<T, IndexedEdge<T, E>>, Comparable<IndexedEdge<T, E>> {
 	public final int index;
 	public final E edge;
 
@@ -13,7 +13,7 @@ public final class IndexedEdge<E extends DirectedEdge<E> & Comparable<? super E>
 	}
 	
 	@Override
-	public int compareTo(IndexedEdge<E> other) {
+	public int compareTo(IndexedEdge<T, E> other) {
 		return edge.compareTo(other.edge);
 	}
 
@@ -28,12 +28,12 @@ public final class IndexedEdge<E extends DirectedEdge<E> & Comparable<? super E>
 	}
 
 	@Override
-	public double weight() {
+	public T weight() {
 		return edge.weight();
 	}
 
 	@Override
-	public IndexedEdge<E> reversed() {
+	public IndexedEdge<T, E> reversed() {
 		return new IndexedEdge<>(index, edge.reversed());
 	}
 
@@ -46,7 +46,7 @@ public final class IndexedEdge<E extends DirectedEdge<E> & Comparable<? super E>
 	public boolean equals(final Object o) {
 		if (this == o) return true;
 		if (o == null || getClass() != o.getClass()) return false;
-		IndexedEdge<?> that = (IndexedEdge<?>) o;
+		IndexedEdge<?, ?> that = (IndexedEdge<?, ?>) o;
 		return index == that.index && edge == that.edge;
 	}
 

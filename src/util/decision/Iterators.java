@@ -2,8 +2,8 @@ package util.decision;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
+import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -11,14 +11,15 @@ import java.util.stream.Stream;
 public class Iterators {
 
     private Iterators() {}
+    // todo turn everything into iterators
 
     // returns all (i, j) so that 0 <= i < j < max
-    public static Iterable<IntTuple> ascendingIntPairs(int max) {
+    public static <T> Iterable<T> ascendingIntPairs(int max, BiFunction<Integer, Integer, T> producer) {
         return () -> IntStream.range(0, max)
             .boxed()
             .flatMap(j -> IntStream.range(0, j)
                 .boxed()
-                .map(i -> new IntTuple(i, j)))
+                .map(i -> producer.apply(i, j)))
             .iterator();
     }
 
@@ -65,14 +66,5 @@ public class Iterators {
                 swapped.set(len - 1, base.get(i));
                 return permutations(swapped, len - 1);
             });
-    }
-
-    public static class IntTuple {
-        public final int i, j;
-
-        public IntTuple(int i, int j) {
-            this.i = i;
-            this.j = j;
-        }
     }
 }

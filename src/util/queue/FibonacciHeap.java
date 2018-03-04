@@ -156,14 +156,14 @@ public class FibonacciHeap<T> implements ExtendedPriorityQueue<T> {
 
     @Override
     public void insert(T element) {
-        insertIntoRootList(new Node<>(element, -1));
+        insertIntoRootList(new Node<>(element));
         size++;
     }
 
     @Override
     public long insertWithId(T element) {
         final long id = nextId++;
-        Node<T> node = new Node<>(element, id);
+        Node<T> node = new Node<>(element);
         insertIntoRootList(node);
         idToNode.put(id, node);
         size++;
@@ -247,7 +247,6 @@ public class FibonacciHeap<T> implements ExtendedPriorityQueue<T> {
 
     private static final class Node<T> {
         final T element;
-        final long id; // TODO: USE THIS
 
         int degree = 0;
         boolean marked = false;
@@ -258,9 +257,8 @@ public class FibonacciHeap<T> implements ExtendedPriorityQueue<T> {
         Node<T> next = null;
         Node<T> prev = null;
 
-        Node(T element, long id) {
+        Node(T element) {
             this.element = element;
-            this.id = id;
         }
 
         @Override

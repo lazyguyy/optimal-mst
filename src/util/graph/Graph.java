@@ -2,7 +2,7 @@ package util.graph;
 
 import util.graph.edge.DirectedEdge;
 
-public class Graph<E extends DirectedEdge<E>> {
+public class Graph<E extends DirectedEdge<?, E>> {
     public final int vertices;
     public final EdgeList<E> edges;
 

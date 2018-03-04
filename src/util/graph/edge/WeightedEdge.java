@@ -2,19 +2,19 @@ package util.graph.edge;
 
 import java.util.Objects;
 
-public final class WeightedEdge implements DirectedEdge<WeightedEdge>, Comparable<WeightedEdge> {
+public final class WeightedEdge<T extends Comparable<? super T>> implements DirectedEdge<T, WeightedEdge<T>>, Comparable<WeightedEdge<T>> {
     private final int from;
     private final int to;
-    private final double weight;
+    private final T weight;
 
-    public WeightedEdge(final int from, final int to, final double weight) {
+    public WeightedEdge(final int from, final int to, final T weight) {
         this.from = from;
         this.to = to;
         this.weight = weight;
     }
 
-    public static WeightedEdge reweighted(final WeightedEdge original, final double weight) {
-        return new WeightedEdge(original.from, original.to, weight);
+    public WeightedEdge<T> reweighted(final T weight) {
+        return new WeightedEdge<>(from, to, weight);
     }
 
     public int from() {
@@ -25,12 +25,12 @@ public final class WeightedEdge implements DirectedEdge<WeightedEdge>, Comparabl
         return to;
     }
 
-    public WeightedEdge reversed() {
-        return new WeightedEdge(to, from, weight);
+    public WeightedEdge<T> reversed() {
+        return new WeightedEdge<>(to, from, weight);
     }
 
     @Override
-    public double weight() {
+    public T weight() {
         return weight;
     }
 
@@ -43,8 +43,8 @@ public final class WeightedEdge implements DirectedEdge<WeightedEdge>, Comparabl
     public boolean equals(final Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        WeightedEdge that = (WeightedEdge) o;
-        return from == that.from && to == that.to && Double.compare(that.weight, weight) == 0;
+        WeightedEdge<?> that = (WeightedEdge<?>) o;
+        return from == that.from && to == that.to && weight == that.weight;
     }
 
     @Override
@@ -53,8 +53,8 @@ public final class WeightedEdge implements DirectedEdge<WeightedEdge>, Comparabl
     }
 
     @Override
-    public int compareTo(final WeightedEdge other) {
-        int byWeight = Double.compare(weight, other.weight);
+    public int compareTo(final WeightedEdge<T> other) {
+        int byWeight = weight.compareTo(other.weight);
         if (byWeight != 0)
             return byWeight;
         int byFrom = Integer.compare(from, other.from);
@@ -62,5 +62,4 @@ public final class WeightedEdge implements DirectedEdge<WeightedEdge>, Comparabl
             return byFrom;
         return Integer.compare(to, other.to);
     }
-
 }

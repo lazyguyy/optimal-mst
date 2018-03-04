@@ -4,7 +4,7 @@ import util.graph.edge.DirectedEdge;
 
 import java.util.ArrayList;
 
-public final class AdjacencyList<E extends DirectedEdge<E>> extends ArrayList<EdgeList<E>> {
+public final class AdjacencyList<E extends DirectedEdge<?, E>> extends ArrayList<EdgeList<E>> {
 
 	private static final long serialVersionUID = 1L;
 
@@ -14,11 +14,11 @@ public final class AdjacencyList<E extends DirectedEdge<E>> extends ArrayList<Ed
             add(new EdgeList<>());
     }
 
-    public static <E extends DirectedEdge<E>> AdjacencyList<E> of(Graph<E> g) {
+    public static <T, E extends DirectedEdge<T, E>> AdjacencyList<E> of(Graph<E> g) {
         return of(g.vertices, g.edges);
     }
 
-    public static <E extends DirectedEdge<E>> AdjacencyList<E> of(int vertices, Iterable<? extends E> edges) {
+    public static <T, E extends DirectedEdge<T, E>> AdjacencyList<E> of(int vertices, Iterable<? extends E> edges) {
         AdjacencyList<E> adjacency = new AdjacencyList<>(vertices);
         for (E e : edges) {
             adjacency.append(e.from(), e);

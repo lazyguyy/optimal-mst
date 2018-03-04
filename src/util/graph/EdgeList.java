@@ -6,14 +6,14 @@ import util.queue.Meldable;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
-import java.util.Objects;
+import java.util.function.Function;
 import java.util.function.IntFunction;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-public final class EdgeList<E extends DirectedEdge<E>> implements Meldable<EdgeList<E>>, Iterable<E> {
+public final class EdgeList<E extends DirectedEdge<?, E>> implements Meldable<EdgeList<E>>, Iterable<E> {
 
     private Node<E> first;
     private Node<E> last;
@@ -74,13 +74,6 @@ public final class EdgeList<E extends DirectedEdge<E>> implements Meldable<EdgeL
         size++;
     }
 
-    public double weight() {
-        double sum = 0;
-        for (E e : this)
-            sum += e.weight();
-        return sum;
-    }
-
     public void clear() {
         first = last = null;
         size = 0;
@@ -96,6 +89,10 @@ public final class EdgeList<E extends DirectedEdge<E>> implements Meldable<EdgeL
 
     public <C extends Collection<E>> C collect(Supplier<C> collectionFactory) {
         return stream().collect(Collectors.toCollection(collectionFactory));
+    }
+
+    public <T, C extends Collection<T>> C mapCollect(Function<E, T> func, Supplier<C> collectionFactory) {
+        return stream().map(func).collect(Collectors.toCollection(collectionFactory));
     }
 
     @Override
@@ -123,7 +120,7 @@ public final class EdgeList<E extends DirectedEdge<E>> implements Meldable<EdgeL
         return new Itr<>(this);
     }
 
-    private static class Itr<E extends DirectedEdge<E>> implements Iterator<E> {
+    private static class Itr<E extends DirectedEdge<?, E>> implements Iterator<E> {
         private Node<E> current;
 
         Itr(EdgeList<E> list) {
@@ -149,7 +146,7 @@ public final class EdgeList<E extends DirectedEdge<E>> implements Meldable<EdgeL
         if (edge == null) throw new IllegalArgumentException("Edges may not be null.");
     }
 
-    private static class Node<E extends DirectedEdge<E>> {
+    private static class Node<E extends DirectedEdge<?, E>> {
         final E edge;
         Node<E> prev;
         Node<E> next;

@@ -5,14 +5,12 @@ import util.graph.EdgeList;
 import util.graph.edge.DirectedEdge;
 import util.graph.edge.IndexedEdge;
 import util.graph.edge.WeightedEdge;
+import util.log.Logger;
 
 import java.util.*;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 public class PrecomputedMSTCollection {
-
-    private static final Logger LOGGER = Logger.getLogger(PrecomputedMSTCollection.class.getName());
 
     // graphs[vertex count][edge structure id]
     private final Map<Integer, Map<Integer, GraphStructureMSTLookup>> graphs;
@@ -25,7 +23,7 @@ public class PrecomputedMSTCollection {
 
     public static PrecomputedMSTCollection computeUpTo(int maxVertices) {
 
-        System.out.println(String.format("Computing decision trees for up to %s vertices.", maxVertices));
+        Logger.logf("Computing decision trees for up to %s vertices.", maxVertices);
 
         Map<Integer, Map<Integer, GraphStructureMSTLookup>> lookups = new HashMap<>();
 
@@ -33,16 +31,16 @@ public class PrecomputedMSTCollection {
         for (int vertices = 2; vertices < maxVertices + 1; vertices++) {
             lookups.put(vertices, new HashMap<>());
 
-            List<WeightedEdge> possibleEdges = new ArrayList<>();
-            Iterators.ascendingIntPairs(vertices).forEach(pair -> possibleEdges.add(new WeightedEdge(pair.i, pair.j, 0)));
+            List<WeightedEdge<Integer>> possibleEdges = new ArrayList<>();
+            Iterators.ascendingIntPairs(vertices, (i, j) -> new WeightedEdge<>(i, j, 0)).forEach(possibleEdges::add);
 
             // generate every combination of edges
             edgecombinations:
-            for (List<WeightedEdge> edges : Iterators.powerSet(possibleEdges)) {
+            for (List<WeightedEdge<Integer>> edges : Iterators.powerSet(possibleEdges)) {
             	if (edges.size() <= 1)
             		continue;
 
-            	System.out.println(String.format("Generating decision trees for graphs with %s edges and %s vertices.", edges.size(), vertices));
+            	Logger.logf("Generating decision trees for graphs with %s edges and %s vertices.", edges.size(), vertices);
                 // iterate over all decision tree depths
                 for (int depth = 0; depth < vertices * vertices; depth++) {
 
@@ -56,17 +54,17 @@ public class PrecomputedMSTCollection {
                             int bucket = tree.classify(permutation);
                             // calculate mst indices here
                             
-                            List<IndexedEdge<WeightedEdge>> permutedEdges = new ArrayList<>();
+                            List<IndexedEdge<Integer, WeightedEdge<Integer>>> permutedEdges = new ArrayList<>();
                             // Create graph with permuted edge weights
                             for (int index = 0; index < edges.size(); ++index) {
                             	permutedEdges.add(new IndexedEdge<>(index,
-                                        WeightedEdge.reweighted(edges.get(index), permutation.get(index))));
+                                        edges.get(index).reweighted(permutation.get(index))));
                             }
                             
-                            EdgeList<IndexedEdge<WeightedEdge>> mst = KruskalMST.compute(vertices, permutedEdges);
+                            EdgeList<IndexedEdge<Integer, WeightedEdge<Integer>>> mst = KruskalMST.compute(vertices, permutedEdges);
 
                             List<Integer> edgeIndices = new ArrayList<>();
-                            for (IndexedEdge<WeightedEdge> edge : mst) {
+                            for (IndexedEdge<Integer, WeightedEdge<Integer>> edge : mst) {
                             	edgeIndices.add(edge.index);
                             }
                             Collections.sort(edgeIndices);
@@ -89,9 +87,9 @@ public class PrecomputedMSTCollection {
                         }
 
                         // a perfect decision tree has been found
-                        System.out.println(edges.stream().map(e -> String.format("(%s, %s)", e.from(), e.to())).collect(Collectors.joining(" ")));
-                        System.out.println(String.format("MST: %s", mstIndices));
-                        System.out.println(tree.toString());
+                        Logger.logf("Edges: %s", edges.stream().map(e -> String.format("(%s, %s)", e.from(), e.to())).collect(Collectors.joining(" ")));
+                        Logger.logf("MST: %s", mstIndices);
+                        Logger.log(tree.toString());
                         int structureId = structureId(vertices, edges);
                         lookups.get(vertices).put(structureId, new DecisionTreeMSTLookup(tree, mstIndices));
                         continue edgecombinations;
@@ -103,7 +101,7 @@ public class PrecomputedMSTCollection {
         return new PrecomputedMSTCollection(maxVertices, lookups);
     }
 
-    public <E extends DirectedEdge<E> & Comparable<? super E>> EdgeList<E> findMST(int vertices, List<E> edges) {
+    public <T, E extends DirectedEdge<T, E> & Comparable<? super E>> EdgeList<E> findMST(int vertices, List<E> edges) {
         if (vertices >= maxVertices)
             throw new IllegalArgumentException("No precomputed solutions exist for graph size " + vertices + ".");
 
@@ -126,7 +124,7 @@ public class PrecomputedMSTCollection {
     // structure id k of a graph g:
     // bit (i * vertices) + j of k is set iff there is an edge between vertices i and j in g
     // this only works for graphs with up to 5 vertices :)
-    private static <E extends DirectedEdge<E>> int structureId(int vertices, Iterable<E> edges) {
+    private static <T, E extends DirectedEdge<T, E>> int structureId(int vertices, Iterable<E> edges) {
         int id = 0;
         for (E e : edges) {
             if (e.from() == e.to())
