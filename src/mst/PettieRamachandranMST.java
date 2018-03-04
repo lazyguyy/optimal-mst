@@ -116,7 +116,7 @@ public final class PettieRamachandranMST {
                 continue;
 //            System.out.println("Growing partition for vertex " + current);
             dead[current] = true;
-            SoftPriorityQueue<ContractedEdge<E>> softHeap = FibonacciHeap.naturallyOrdered();
+            SoftPriorityQueue<ContractedEdge<E>> softHeap = SoftHeap.naturallyOrdered(errorRate);
             edges.get(current).forEach(softHeap::insert);
 
             Set<Integer> currentPartition = new HashSet<>();
