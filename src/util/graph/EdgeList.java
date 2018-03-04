@@ -14,9 +14,7 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 /**
- * 
- * A linked List of Edges for a Graph.
- * Supports melding of two EdgeLists in O(1)
+ * A linked list of edges for a graph that supports concatenation in O(1).
  * @param <E> the edge type of the graph
  */
 public final class EdgeList<E extends DirectedEdge<?, E>> implements Meldable<EdgeList<E>>, Iterable<E> {
@@ -65,7 +63,6 @@ public final class EdgeList<E extends DirectedEdge<?, E>> implements Meldable<Ed
 
     /**
      * Takes an edge and appends it to this {@link EdgeList}.
-     * @param <E> the type of edge
      * @param edge the edge to be appended to this {@link EdgeList}
      */
     public void append(final E edge) {
@@ -84,7 +81,6 @@ public final class EdgeList<E extends DirectedEdge<?, E>> implements Meldable<Ed
 
     /**
      * Takes an edge and prepends it to this {@link EdgeList}.
-     * @param <E> the type of edge
      * @param edge the edge to be prepended to this {@link EdgeList}
      */
     public void prepend(final E edge) {
@@ -110,13 +106,18 @@ public final class EdgeList<E extends DirectedEdge<?, E>> implements Meldable<Ed
     }
 
     /**
-     * Returns a {@link Stream} of the Edges of this {@link EdgeList}.
-     * @return a {@link Stream} of the Edges of this {@link EdgeList}
+     * Returns a {@link Stream} of the edges of this {@link EdgeList}.
+     * @return a {@link Stream} of the edges of this {@link EdgeList}
      */
     public Stream<E> stream() {
         return StreamSupport.stream(spliterator(), false);
     }
 
+    /**
+     * Creates an array of the edges of this {@link EdgeList} using the provided generator
+     * @param generator a function which produces a new array of the desired type and the provided length
+     * @return an array containing the edges of this {@link EdgeList}
+     */
     public E[] toArray(IntFunction<E[]> generator) {
         return stream().toArray(generator);
     }
@@ -185,7 +186,6 @@ public final class EdgeList<E extends DirectedEdge<?, E>> implements Meldable<Ed
     }
 
     /**
-     * 
      * This class represents a node of the linked list
      * @param <E> the edge type of the graph
      */
