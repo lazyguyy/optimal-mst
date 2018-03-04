@@ -7,9 +7,9 @@ import util.graph.edge.DirectedEdge;
  * @param <E> the type of edge in the graph
  */
 public class Graph<E extends DirectedEdge<?, E>> {
-	/**
-	 * The number of vertices in the graph
-	 */
+    /**
+     * The number of vertices in the graph
+     */
     public final int vertices;
     /**
      * The {@link EdgeList} of edges in the graph

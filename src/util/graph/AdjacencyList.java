@@ -11,34 +11,34 @@ import java.util.ArrayList;
  */
 public final class AdjacencyList<E extends DirectedEdge<?, E>> extends ArrayList<EdgeList<E>> {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	/**
-	 * Creates a new AdjacenyList for a graph with count vertices
-	 * @param count the number of vertices in the AdjacencyList
-	 */
-	public AdjacencyList(int count) {
+    /**
+     * Creates a new AdjacenyList for a graph with count vertices
+     * @param count the number of vertices in the AdjacencyList
+     */
+    public AdjacencyList(int count) {
         super(count);
         for (int i = 0; i < count; i++)
             add(new EdgeList<>());
     }
 
-	/**
-	 * Takes a {@link Graph} graph and transforms it into an AdjacencyList
-	 * @param <T> the weight type of the edges in the graph
-	 * @param <E> the edge type of the edges in the graph
-	 * @param g the {@link Graph} to be transformed
-	 * @return the AdjacencyList for the given Graph
-	 */
+    /**
+     * Takes a {@link Graph} graph and transforms it into an AdjacencyList
+     * @param <T> the weight type of the edges in the graph
+     * @param <E> the edge type of the edges in the graph
+     * @param g the {@link Graph} to be transformed
+     * @return the AdjacencyList for the given Graph
+     */
     public static <T, E extends DirectedEdge<T, E>> AdjacencyList<E> of(Graph<E> g) {
         return of(g.vertices, g.edges);
     }
 
     /**
      * 
-	 * Takes a graph given by the number of vertices and an {@link Iterable} of edges and transforms it into an AdjacencyList
-	 * @param <T> the weight type of the edges in the graph
-	 * @param <E> the edge type of the edges in the graph
+     * Takes a graph given by the number of vertices and an {@link Iterable} of edges and transforms it into an AdjacencyList
+     * @param <T> the weight type of the edges in the graph
+     * @param <E> the edge type of the edges in the graph
      * @param vertices the number of vertices
      * @param edges an {@link Iterable} of edges
      * @return the AdjacencyList for the given Graph

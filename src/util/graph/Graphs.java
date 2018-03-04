@@ -11,15 +11,15 @@ import java.util.stream.Collectors;
  */
 public final class Graphs {
 
-	/**
-	 * Returns an array representing a connected component mapping. The i-th entry is the index of the connected component
-	 * which the i-th vertex is part of
-	 * @param <T> the weight type of the edges in the graph
-	 * @param <E> the edge type of the edges in the graph
-	 * @param vertices the number of vertices in the graph
-	 * @param edges an {@link Iterable} of all edges in the graph
-	 * @return an array representing a connected component mapping as described above
-	 */
+    /**
+     * Returns an array representing a connected component mapping. The i-th entry is the index of the connected component
+     * which the i-th vertex is part of
+     * @param <T> the weight type of the edges in the graph
+     * @param <E> the edge type of the edges in the graph
+     * @param vertices the number of vertices in the graph
+     * @param edges an {@link Iterable} of all edges in the graph
+     * @return an array representing a connected component mapping as described above
+     */
     public static <T, E extends DirectedEdge<T, E>> int[] componentMapping(int vertices, Iterable<E> edges) {
         return componentMapping(vertices, components(vertices, edges));
     }

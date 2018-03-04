@@ -4,10 +4,10 @@ package util.disjointset;
  * Represents a disjoint set data structure.
  */
 public interface DisjointSet {
-	/**
-	 * Returns the number of distinct sets.
-	 * @return the number of distinct sets
-	 */
+    /**
+     * Returns the number of distinct sets.
+     * @return the number of distinct sets
+     */
     int count();
     /**
      * Returns the number of elements.
