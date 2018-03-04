@@ -81,8 +81,10 @@ class DecisionTree {
         List<Comparison> comparisons = new ArrayList<>();
         Iterators.ascendingIntPairs(edges, Comparison::new).forEach(comparisons::add);
 
-        return () -> Iterators.combinations(length, comparisons)
-            .map(l -> new DecisionTree(l.toArray(new Comparison[length])))
-            .iterator();
+        // TODO fix
+        return new ArrayList<>();
+        //return () -> Iterators.combinations(length, comparisons)
+        //    .map(l -> new DecisionTree(l.toArray(new Comparison[length])))
+        //    .iterator();
     }
 }
