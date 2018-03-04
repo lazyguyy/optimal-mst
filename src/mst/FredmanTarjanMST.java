@@ -11,7 +11,7 @@ import java.util.*;
 public final class FredmanTarjanMST {
 
     public static <T extends Comparable<? super T>, E extends DirectedEdge<T, E> & Comparable<? super E>>
-            EdgeList<E> compute(int vertices, Iterable<E> edges) {
+        EdgeList<E> compute(int vertices, Iterable<E> edges) {
         EdgeList<ContractedEdge<T, E>> wrapper = new EdgeList<>();
         for (E e : edges)
             wrapper.append(new ContractedEdge<>(e));
