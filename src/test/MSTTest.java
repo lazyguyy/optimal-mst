@@ -15,8 +15,8 @@ public class MSTTest {
                 new WeightedEdge<>(2, 3, 6),
                 new WeightedEdge<>(3, 4, 3),
                 new WeightedEdge<>(4, 5, 7),
-                new WeightedEdge<>(5, 0, 4)
-                );
+                new WeightedEdge<>(5, 0, 4));
+
         List<MinimumSpanningTreeAlgorithm<WeightedEdge<Integer>>> algorithms = Arrays.asList(
                 BoruvkaMST::compute,
                 PrimMST::compute,

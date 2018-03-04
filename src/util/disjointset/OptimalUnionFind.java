@@ -24,7 +24,7 @@ public class OptimalUnionFind implements DisjointSet {
     }
 
     @Override
-    public int distinct() {
+    public int count() {
         return distinct;
     }
 

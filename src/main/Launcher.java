@@ -44,8 +44,10 @@ public class Launcher {
                 algs.add(algorithms.get(s));
                 continue;
             }
-            if ("log".equals(s))
+            if ("log".equals(s)) {
                 Logger.setActive(true);
+                continue;
+            }
             printUsage();
             return;
         }
