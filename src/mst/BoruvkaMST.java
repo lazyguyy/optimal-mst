@@ -1,12 +1,13 @@
 package mst;
 
-import util.graph.Graph;
-import util.graph.edge.ContractedEdge;
 import util.graph.EdgeList;
+import util.graph.Graph;
 import util.graph.Graphs;
+import util.graph.edge.ContractedEdge;
 import util.graph.edge.DirectedEdge;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Set;
 
 public final class BoruvkaMST {
 

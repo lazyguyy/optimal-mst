@@ -1,20 +1,22 @@
 package mst;
 
-import util.graph.Graph;
-import util.graph.edge.DirectedEdge;
-import util.queue.SoftHeap;
-import util.queue.SoftPriorityQueue;
-import util.graph.Graphs;
 import util.decision.PrecomputedMSTCollection;
 import util.graph.AdjacencyList;
-import util.graph.edge.ContractedEdge;
-import util.graph.edge.RenamedEdge;
 import util.graph.EdgeList;
+import util.graph.Graph;
+import util.graph.Graphs;
+import util.graph.edge.ContractedEdge;
+import util.graph.edge.DirectedEdge;
+import util.graph.edge.RenamedEdge;
+import util.queue.SoftHeap;
+import util.queue.SoftPriorityQueue;
+
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.HashSet;
 
+// todo make this beautiful
 public final class PettieRamachandranMST {
 
     public static <T extends Comparable<? super T>, E extends DirectedEdge<T, E> & Comparable<? super E>>

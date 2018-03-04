@@ -1,6 +1,8 @@
 package util.graph;
 
-import util.graph.edge.*;
+import util.graph.edge.ContractedEdge;
+import util.graph.edge.DirectedEdge;
+import util.graph.edge.RenamedEdge;
 
 import java.util.*;
 import java.util.stream.Collectors;

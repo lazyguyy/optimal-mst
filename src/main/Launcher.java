@@ -34,6 +34,7 @@ public class Launcher {
 
         // disable / enable logging on root logger
         Logger.setActive(false);
+        boolean show = false;
 
         List<MinimumSpanningTreeAlgorithm<WeightedEdge<Double>>> algs = new ArrayList<>();
         if (args.length == 0)
@@ -46,6 +47,10 @@ public class Launcher {
             }
             if ("log".equals(s)) {
                 Logger.setActive(true);
+                continue;
+            }
+            if ("show".equals(s)) {
+                show = true;
                 continue;
             }
             printUsage();
@@ -73,8 +78,10 @@ public class Launcher {
             long now = System.currentTimeMillis();
             EdgeList<WeightedEdge<Double>> mst = alg.findMST(vertices, edges);
 
-            for (WeightedEdge<Double> edge : mst) {
-                System.out.printf("%s %s  %s\n", edge.from(), edge.to(), edge.weight());
+            if (show) {
+                for (WeightedEdge<Double> edge : mst) {
+                    System.out.printf("%s %s  %s\n", edge.from(), edge.to(), edge.weight());
+                }
             }
             System.out.printf("Total weight: %s\n", mst.stream().mapToDouble(WeightedEdge::weight).sum());
             System.out.printf("Took %s ms\n\n", System.currentTimeMillis() - now);
