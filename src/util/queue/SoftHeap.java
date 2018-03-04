@@ -17,6 +17,7 @@ public class SoftHeap<T> implements SoftPriorityQueue<T>, Meldable<SoftHeap<T>> 
         this(errorRate, comparator);
         queue = new BinaryHeap();
         queue.root.insert(element);
+        queue.sufMin = queue;
         size = 1;
         rank = 1;
         corruptedElements = new HashSet<>();
@@ -58,26 +59,18 @@ public class SoftHeap<T> implements SoftPriorityQueue<T>, Meldable<SoftHeap<T>> 
         T element = elements.get(0);
         elements.remove(0);
         if (minHeap.root.size * 0.5 > elements.size()) {
-        	// This binary heap does not contain any elements at all
-        	// In order to remove it we need to update all other references properly
+        	// Replenish the list.
+        	// Remove the tree if its now empty
         	if (minHeap.root.sift() == 0) {
-                if (minHeap.next != null) {
-                    minHeap.next.prev = minHeap.prev;
-                }
-                if (minHeap.prev == null) {
-                    queue = minHeap.next;
-                    if (queue != null)
-                    	queue.updateSuffixMin();
-                } else {
-                    minHeap.prev.next = minHeap.next;
-                    minHeap.prev.updateSuffixMin();
-                }
+                removeHeap(minHeap);
         	} else {
         		minHeap.updateSuffixMin();
         	}
         }
         corruptedElements.remove(element);
         size--;
+        System.out.println("Removed " + element);
+        System.out.println(this);
         return element;
     }
 
@@ -85,37 +78,125 @@ public class SoftHeap<T> implements SoftPriorityQueue<T>, Meldable<SoftHeap<T>> 
     public void insert(T element) {
         SoftHeap<T> newHeap = new SoftHeap<T>(errorRate, comparator, element);
         meld(newHeap);
+        System.out.println("Inserted " + element);
+        System.out.println(this);
     }
 
+    /**
+     * Combines two binary heaps
+     * @param first the first heap
+     * @param second the second heap
+     * @return the combined heap
+     */
     private BinaryHeap combine(BinaryHeap first, BinaryHeap second) {
-    	// Create a new Heap with a root node containing both binary heaps
-        BinaryHeapNode newRoot = new BinaryHeapNode(first.root, second.root, null, first.root.rank + 1);
-        BinaryHeap newHeap = new BinaryHeap(newRoot);
-        // Update all references properly
-        if (second.next != null) {
-        	second.next.prev = newHeap;
-        }
-        newHeap.prev = first.prev;
-        newHeap.next = second.next;
-        // Make sure garbage collection can clean those bad boys up
-        first.next = null;
-        second.prev = null;
-        return newHeap;
+    	// Update first so its root node contains first and second as childs.
+    	// We keep the references for now
+        first.combine(second);
+        return first;
     }
-    
+    /**
+     * Removes a heap from the queue. Updates all pointers properly
+     * @param heap the heap to be removed
+     */
+    private void removeHeap(BinaryHeap heap) {
+    	if (heap.next != null) {
+    		heap.next.prev = heap.prev;
+    	}
+    	// the heap we are removing was the start of the queue
+    	if (heap.prev == null){
+    		queue = heap.next;
+    	} else {
+    		heap.prev.next = heap.next;
+    		heap.prev.updateSuffixMin();
+    	}
+    }
+    /**
+     * Resets the binary heap
+     */
     public void clear() {
     	this.queue = null;
     	this.size = 0;
     	this.rank = 0;
     	this.corruptedElements.clear();
     }
+    /**
+     * Merges two queues of Binary heaps and keeps the heaps in increasing order by rank
+     * @param queue1 the first queue 
+     * @param queue2 the second queue
+     * @return the first heap in the queue of merged binary heaps
+     */
+    private BinaryHeap mergeQueues(BinaryHeap queue1, BinaryHeap queue2) {
+    	BinaryHeap root;
+    	// Find the Heap with smallest rank and put it at the very beginning of the merged queue
+    	if (queue1.root.rank < queue2.root.rank) {
+    		root = queue1;
+    		queue1 = queue1.next;
+    	} else {
+    		root = queue2;
+    		queue2 = queue2.next;
+    	}
+    	BinaryHeap currentHeap = root;
+    	// While there are elements in both queues, take the smaller one and append it to our queue
+    	while (queue1 != null && queue2 != null) {
+    		BinaryHeap smallerHeap;
+    		if (queue1.root.rank < queue2.root.rank) {
+    			smallerHeap = queue1;
+    			queue1 = queue1.next;
+    		} else {
+    			smallerHeap = queue2;
+    			queue2 = queue2.next;
+    		}
+    		currentHeap.next = smallerHeap;
+    		smallerHeap.prev = currentHeap;
+    		currentHeap = currentHeap.next;
+    	}
+    	BinaryHeap remainingQueue;
+    	// Either queue1 or queue2 still contains elements, and because the heaps are ordered in increasing order by rank
+    	// we can just append the remaining heaps
+    	if (queue1 != null) {
+    		remainingQueue = queue1;
+    	} else {
+    		remainingQueue = queue2;
+    	}
+    	currentHeap.next = remainingQueue;
+    	remainingQueue.prev = currentHeap;
+    	
+    	return root;
+    }
+    
+    /**
+     * Combines all heaps of the same rank so that there is only one heap for a given rank
+     * @param queue the queue in which to combine all trees
+     * @param combineUpTo the rank up to which duplicates of a rank can appear
+     * @return the last which suffix min pointer needs to be updated
+     */
+    private BinaryHeap repeatedCombine(BinaryHeap queue, int combineUpTo) {
+    	BinaryHeap currentHeap = queue;
+    	while (currentHeap.next != null) {
+    		// Combine two trees if they are of the same rank
+    		if (currentHeap.root.rank == currentHeap.next.root.rank) {
+    			// But only if there is not a third of the same rank following these two
+    			if (currentHeap.next.next == null ||
+    					currentHeap.root.rank != currentHeap.next.next.root.rank) {
+    				currentHeap = combine(currentHeap, currentHeap.next);
+    				rank = Math.max(rank, currentHeap.root.rank);
+    				removeHeap(currentHeap.next);
+    				continue;
+    			}
+    		} else if(currentHeap.root.rank > combineUpTo) {
+    			break;
+    		}
+    		currentHeap = currentHeap.next;
+    	}
+    	return currentHeap;
+    }
 
     @Override
     public void meld(SoftHeap<T> other) {
-	// In case this soft heap is empty we just copy the other heap
     	if (other.queue == null) {
     		return;
     	}
+    	// In case this soft heap is empty we just copy the other heap
     	if (this.queue == null) {
     		this.queue = other.queue;
     		this.rank = other.rank;
@@ -124,82 +205,29 @@ public class SoftHeap<T> implements SoftPriorityQueue<T>, Meldable<SoftHeap<T>> 
     		other.clear();
     		return;
     	}
-        BinaryHeap thisHeap = this.queue, otherHeap = other.queue;
-        BinaryHeap currentHeap;
-        int maxRank = 1;
-        // First we merge both Lists of binary heaps and keep them
-        // in non-decreasing order of ranks
-        // Decide from which queue to take first
-        if(otherHeap.root.rank < thisHeap.root.rank) {
-            currentHeap = otherHeap;
-            otherHeap = otherHeap.next;  
-        } else {
-            currentHeap = thisHeap;
-            thisHeap = thisHeap.next;
-        }
-        queue = currentHeap;
-        // Merge as long as we have not reached the end of one of the queues
-        while (thisHeap != null && otherHeap != null) {
-        	// Take the heap with smaller rank
-        	// Keep maxRank updated
-        	BinaryHeap smallerHeap;
-            if (otherHeap.root.rank < thisHeap.root.rank) {
-            	smallerHeap = otherHeap;
-                otherHeap = otherHeap.next;
-            } else {
-            	smallerHeap = thisHeap;
-                thisHeap = thisHeap.next;
-            }
-            currentHeap.next = smallerHeap;
-            smallerHeap.prev = currentHeap;
-            maxRank = Math.max(maxRank, smallerHeap.root.rank);
-            currentHeap = currentHeap.next;   
-        }
-        // Append all the missing binary heaps
-        if (thisHeap != null) {
-            currentHeap.next = thisHeap;
-            thisHeap.prev = currentHeap;
-        } else {
-            currentHeap.next = otherHeap;
-            otherHeap.prev = currentHeap;
-        }
+    	int combineUpTo = Math.min(this.rank, other.rank);
+    	rank = Math.max(this.rank, other.rank);
+    	// Merge both queues in increasing order of rank
+    	queue = mergeQueues(this.queue, other.queue);
 
-        // Next we combine heaps of the same rank
-        // clear to start of linked list
-        currentHeap = queue;
-        while (currentHeap.next != null) {
-            if (currentHeap.root.rank == currentHeap.next.root.rank) {
-                // Only merge two trees if there are not 3 of the same kind
-                if (currentHeap.next.next == null ||
-                    currentHeap.next.root.rank != currentHeap.next.next.root.rank) {
-                    
-                	// Combine both heaps into one, update the rank
-                	BinaryHeap newHeap = combine(currentHeap, currentHeap.next);
-                    rank = Math.max(rank, newHeap.root.rank);
-                    // Update the references properly
-                    currentHeap = newHeap;
-                    if (newHeap.prev == null) {
-                        queue = newHeap;
-                        continue;
-                    } else {
-                        newHeap.prev.next = newHeap;
-                    }
-                }
-            // we only need to look at trees smaller than maxRank + 1
-            // because all trees with higher rank can only be part of one
-            // of the list of heaps.
-            } else if (currentHeap.root.rank > maxRank) {
-                break;
-            }
-            currentHeap = currentHeap.next;
-            rank = Math.max(rank, maxRank);
-        }
+        // Next we combine heaps of the same rank k to a single heap of rank k + 1
+        BinaryHeap lastUpdatedHeap = repeatedCombine(queue, combineUpTo);
         // Update the set of corrupted elements as well as size and the sufMin pointers
         corruptedElements.addAll(other.corruptedElements);
         size += other.size();
-        currentHeap.updateSuffixMin();
+        lastUpdatedHeap.updateSuffixMin();
         // clear the other heap, because it has been destroyed in the merging process
         other.clear();
+    }
+    
+    public String toString() {
+    	StringBuilder sb = new StringBuilder();
+    	sb.append("SoftHeap of rank " + rank + " with " + size + " elements\n");
+    	for (BinaryHeap heap = queue; heap != null; heap = heap.next) {
+    		sb.append(heap.prev + " - " + heap + " - " + heap.next + "\n");
+    		sb.append("Suffix-Min points to " + heap.sufMin + "\n");
+    	}
+    	return sb.toString();
     }
 
     protected class BinaryHeap {
@@ -211,8 +239,8 @@ public class SoftHeap<T> implements SoftPriorityQueue<T>, Meldable<SoftHeap<T>> 
             root = new BinaryHeapNode();
         }
 
-        public BinaryHeap(BinaryHeapNode root) {
-            this.root = root;
+        public void combine(BinaryHeap second) {
+            root = new BinaryHeapNode(root, second.root, null, second.root.rank + 1);
         }
 
         /**
@@ -228,6 +256,9 @@ public class SoftHeap<T> implements SoftPriorityQueue<T>, Meldable<SoftHeap<T>> 
             if (prev != null) {
                 prev.updateSuffixMin();
             } 
+        }
+        public String toString() {
+        	return "R " + root.rank + " | S " + root.size;
         }
     }
 
@@ -247,7 +278,7 @@ public class SoftHeap<T> implements SoftPriorityQueue<T>, Meldable<SoftHeap<T>> 
             if (rank < nodeMinRank) {
                 size = 1;
             } else {
-                size = (int)Math.ceil(3 * Math.max(leftChild.size, rightChild.size) *0.5);
+                size = (int)Math.ceil(3 * Math.max(leftChild.size, rightChild.size) * 0.5);
             }
             elements = new LinkedList<>();
             sift();

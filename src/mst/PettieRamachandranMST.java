@@ -2,7 +2,6 @@ package mst;
 
 import util.graph.Graph;
 import util.graph.edge.DirectedEdge;
-import util.queue.FibonacciHeap;
 import util.queue.SoftHeap;
 import util.queue.SoftPriorityQueue;
 import util.graph.Graphs;
@@ -109,12 +108,13 @@ public final class PettieRamachandranMST {
         Set<ContractedEdge<T, E>> corruptedEdges = new HashSet<>();
         List<Graph<RenamedEdge<T, ContractedEdge<T, E>>>> partitions = new ArrayList<>();
         // For each vertex find a partition that they are part of
+        
         for (int current = 0; current < edges.size(); ++current) {
             if (dead[current])
                 continue;
 //            System.out.println("Growing partition for vertex " + current);
             dead[current] = true;
-            SoftPriorityQueue<ContractedEdge<T, E>> softHeap = FibonacciHeap.naturallyOrdered();
+            SoftPriorityQueue<ContractedEdge<T, E>> softHeap = SoftHeap.naturallyOrdered(errorRate);
             edges.get(current).forEach(softHeap::insert);
 
             Set<Integer> currentPartition = new HashSet<>();
