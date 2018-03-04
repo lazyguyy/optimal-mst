@@ -1,6 +1,5 @@
 package util.graph.edge;
 
-
 import java.util.Objects;
 
 public final class IndexedEdge<T, E extends DirectedEdge<T, E> & Comparable<? super E>> implements DirectedEdge<T, IndexedEdge<T, E>>, Comparable<IndexedEdge<T, E>> {

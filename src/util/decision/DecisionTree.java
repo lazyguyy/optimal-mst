@@ -1,9 +1,12 @@
 package util.decision;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.io.Serializable;
+import java.util.*;
+import java.util.stream.StreamSupport;
 
-class DecisionTree {
+final class DecisionTree implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     // internally, we represent a decision tree (quite similar to a binary heap) by an array of nodes
     // each describing a comparison between two edges
@@ -37,7 +40,9 @@ class DecisionTree {
     }
 
     // represents a comparison between edges
-    private static class Comparison {
+    private static class Comparison implements Serializable {
+        private static final long serialVersionUID = 1L;
+
         final int firstIndex;
         final int secondIndex;
 
@@ -76,15 +81,15 @@ class DecisionTree {
     }
 
     public static Iterable<DecisionTree> enumerateTrees(int depth, int edges) {
+        if (depth > 29)
+            throw new IllegalArgumentException("Unmanageable tree depth.");
         int length = (1 << (depth + 1)) - 1;
 
         List<Comparison> comparisons = new ArrayList<>();
         Iterators.ascendingIntPairs(edges, Comparison::new).forEach(comparisons::add);
 
-        // TODO fix
-        return new ArrayList<>();
-        //return () -> Iterators.combinations(length, comparisons)
-        //    .map(l -> new DecisionTree(l.toArray(new Comparison[length])))
-        //    .iterator();
+        return () -> StreamSupport.stream(Iterators.combinations(length, comparisons).spliterator(), false)
+            .map(l -> new DecisionTree(l.toArray(new Comparison[length])))
+            .iterator();
     }
 }

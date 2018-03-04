@@ -3,7 +3,6 @@ package mst;
 import util.graph.*;
 import util.graph.edge.ContractedEdge;
 import util.graph.edge.DirectedEdge;
-import util.graph.edge.WeightedEdge;
 import util.queue.ExtendedPriorityQueue;
 import util.queue.FibonacciHeap;
 

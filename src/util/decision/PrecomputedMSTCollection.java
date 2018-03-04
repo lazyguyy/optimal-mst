@@ -7,10 +7,13 @@ import util.graph.edge.IndexedEdge;
 import util.graph.edge.WeightedEdge;
 import util.log.Logger;
 
+import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class PrecomputedMSTCollection {
+public final class PrecomputedMSTCollection implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     // graphs[vertex count][edge structure id]
     private final Map<Integer, Map<Integer, GraphStructureMSTLookup>> graphs;
@@ -19,6 +22,10 @@ public class PrecomputedMSTCollection {
     private PrecomputedMSTCollection(int maxVertices, Map<Integer, Map<Integer, GraphStructureMSTLookup>> graphs) {
         this.graphs = graphs;
         this.maxVertices = maxVertices;
+    }
+
+    public int getMaxVertices() {
+        return maxVertices;
     }
 
     public static PrecomputedMSTCollection computeUpTo(int maxVertices) {
@@ -141,7 +148,9 @@ public class PrecomputedMSTCollection {
         <E extends Comparable<? super E>> List<Integer> lookup(List<E> edges);
     }
 
-    private static final class DecisionTreeMSTLookup implements GraphStructureMSTLookup {
+    private static final class DecisionTreeMSTLookup implements GraphStructureMSTLookup, Serializable {
+        private static final long serialVersionUID = 1L;
+
         // the decision tree for this graph structure
         private final DecisionTree tree;
         // the bucket lookup table
