@@ -13,6 +13,8 @@ import java.util.stream.Collectors;
  */
 public final class Graphs {
 
+    private Graphs() {}
+
     /**
      * Returns an array representing a connected component mapping. The i-th entry is the index of the connected component
      * which the i-th vertex is part of
