@@ -127,8 +127,8 @@ public final class Graphs {
      * @param edges an {@link Iterable} of edges of the graph
      * @return an {@link EdgeList} containing no duplicates of edges
      */
-    public static <T, E extends DirectedEdge<T, E> & Comparable<? super E>> EdgeList<E>
-            removeDuplicates(int vertices, Iterable<E> edges) {
+    public static <T, E extends DirectedEdge<T, E> & Comparable<? super E>>
+            EdgeList<E> removeDuplicates(int vertices, Iterable<E> edges) {
 
         EdgeList<E> sorted = sortEdges(vertices, edges);
         EdgeList<E> result = new EdgeList<>();
@@ -160,7 +160,7 @@ public final class Graphs {
 
     /**
      * Takes an {@link Iterable} of edges and renames the vertices, so that all vertex indices
-     * are between 0 and vertices - 1
+     * are between 0 and n - 1 where n is the number of vertices
      * @param <T> the weight type of the edges of the graph
      * @param <E> the edge type of the edges of the graph
      * @param edges the {@link Iterable} whose vertices shall be renamed

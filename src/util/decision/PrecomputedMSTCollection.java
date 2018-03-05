@@ -2,6 +2,7 @@ package util.decision;
 
 import mst.KruskalMST;
 import util.graph.EdgeList;
+import util.graph.Graphs;
 import util.graph.edge.DirectedEdge;
 import util.graph.edge.IndexedEdge;
 import util.graph.edge.WeightedEdge;
@@ -16,10 +17,10 @@ public final class PrecomputedMSTCollection implements Serializable {
     private static final long serialVersionUID = 1L;
 
     // graphs[vertex count][edge structure id]
-    private final Map<Integer, Map<Integer, GraphStructureMSTLookup>> graphs;
+    private final Map<Integer, Map<GraphStructure, GraphStructureMSTLookup>> graphs;
     private final int maxVertices;
 
-    private PrecomputedMSTCollection(int maxVertices, Map<Integer, Map<Integer, GraphStructureMSTLookup>> graphs) {
+    private PrecomputedMSTCollection(int maxVertices, Map<Integer, Map<GraphStructure, GraphStructureMSTLookup>> graphs) {
         this.graphs = graphs;
         this.maxVertices = maxVertices;
     }
@@ -32,7 +33,7 @@ public final class PrecomputedMSTCollection implements Serializable {
 
         Logger.logf("Computing decision trees for up to %s vertices.", maxVertices);
 
-        Map<Integer, Map<Integer, GraphStructureMSTLookup>> lookups = new HashMap<>();
+        Map<Integer, Map<GraphStructure, GraphStructureMSTLookup>> lookups = new HashMap<>();
 
         // iterate over all vertex counts
         for (int vertices = 2; vertices < maxVertices + 1; vertices++) {
@@ -97,7 +98,7 @@ public final class PrecomputedMSTCollection implements Serializable {
                         Logger.logf("Edges: %s", edges.stream().map(e -> String.format("(%s, %s)", e.from(), e.to())).collect(Collectors.joining(" ")));
                         Logger.logf("MST: %s", mstIndices);
                         Logger.log(tree.toString());
-                        int structureId = structureId(vertices, edges);
+                        GraphStructure structureId = GraphStructure.of(vertices, edges);
                         lookups.get(vertices).put(structureId, new DecisionTreeMSTLookup(tree, mstIndices));
                         continue edgecombinations;
                     }
@@ -119,7 +120,7 @@ public final class PrecomputedMSTCollection implements Serializable {
         if (edges.size() <= 1)
         	return new EdgeList<>(edges);
 
-        int structureId = structureId(vertices, edges);
+        GraphStructure structureId = GraphStructure.of(vertices, edges);
         GraphStructureMSTLookup structure = graphs.get(vertices).get(structureId);
 
         EdgeList<E> mst = new EdgeList<>();
@@ -128,22 +129,50 @@ public final class PrecomputedMSTCollection implements Serializable {
         return mst;
     }
 
-    // structure id k of a graph g:
-    // bit (i * vertices) + j of k is set iff there is an edge between vertices i and j in g
-    // todo this only works for graphs with up to 5 vertices :)
-    private static <T, E extends DirectedEdge<T, E>> int structureId(int vertices, Iterable<E> edges) {
-        int id = 0;
-        for (E e : edges) {
-            if (e.from() == e.to())
-                continue;
+    // encapsulates which edges a graph contains
+    // hashable in O(1) due to precomputation
+    // comparable in O(m) because edges are sorted
+    // can be used as key in a HashMap for lookup in expected time O(c * m) = O(m)
+    private static final class GraphStructure {
+        private final int[] froms;
+        private final int[] tos;
+        private final int hash;
 
-            id |= 1 << (e.from() * vertices + e.to());
-            id |= 1 << (e.to() * vertices + e.from());
+        public static <T, E extends DirectedEdge<T, E>> GraphStructure of(int vertices, Iterable<E> edges) {
+            EdgeList<E> sorted = Graphs.sortEdges(vertices, edges);
+            int[] froms = new int[sorted.size()];
+            int[] tos = new int[sorted.size()];
+            int index = 0;
+            for (E e : sorted) {
+                froms[index] = e.from();
+                tos[index] = e.to();
+                index++;
+            }
+            int hash = Objects.hash(Arrays.hashCode(froms), Arrays.hashCode(tos));
+            return new GraphStructure(hash, froms, tos);
         }
-        return id;
+
+        GraphStructure(final int hash, final int[] froms, final int[] tos) {
+            this.hash = hash;
+            this.froms = froms;
+            this.tos = tos;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            GraphStructure that = (GraphStructure) o;
+            return Arrays.equals(froms, that.froms) && Arrays.equals(tos, that.tos);
+        }
+
+        @Override
+        public int hashCode() {
+            return hash;
+        }
     }
 
-    // for extensibility in case of emergency
+    // for extensibility
     private interface GraphStructureMSTLookup {
         <E extends Comparable<? super E>> List<Integer> lookup(List<E> edges);
     }

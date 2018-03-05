@@ -10,10 +10,10 @@ public final class Logger {
         Logger.active = active;
     }
 
-    public static void log(String s) {
+    public static void log(Object s) {
         if (!active)
             return;
-        System.out.println(s);
+        System.out.println(s == null ? null : s.toString());
     }
 
     public static void logf(String s, Object... args) {

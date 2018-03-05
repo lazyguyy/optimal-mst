@@ -8,23 +8,18 @@ import util.graph.Graphs;
 import util.graph.edge.ContractedEdge;
 import util.graph.edge.DirectedEdge;
 import util.graph.edge.RenamedEdge;
+import util.log.Logger;
 import util.queue.SoftHeap;
 import util.queue.SoftPriorityQueue;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
-// todo make this beautiful
 public final class PettieRamachandranMST {
 
     public static <T extends Comparable<? super T>, E extends DirectedEdge<T, E> & Comparable<? super E>>
             EdgeList<E> compute(int vertices, Iterable<E> edges) {
-        EdgeList<ContractedEdge<T, E>> wrapper = new EdgeList<>();
-        for (E edge : edges) {
-            wrapper.append(new ContractedEdge<>(edge));
-        }
+
+        EdgeList<ContractedEdge<T, E>> wrapper = new EdgeList<>(edges).map(ContractedEdge::new);
 
         int maxsize = maxPartitionSize(vertices);
         PrecomputedMSTCollection decisionTrees = PrecomputedMSTCollection.computeUpTo(maxsize);
@@ -34,6 +29,7 @@ public final class PettieRamachandranMST {
 
     private static <T extends Comparable<? super T>, E extends DirectedEdge<T, E> & Comparable<? super E>>
             EdgeList<E> recurse(int vertices, EdgeList<ContractedEdge<T, E>> edges, PrecomputedMSTCollection decisionTrees) {
+
         if (edges.size() == 0)
             return new EdgeList<>();
         
@@ -45,10 +41,8 @@ public final class PettieRamachandranMST {
 
         // Calculate all MSFs for these subgraphs of fixed size using optimal decision trees
         for (Graph<RenamedEdge<T, ContractedEdge<T, E>>> partition : partitions.subGraphs) {
-//        	System.out.println(partition.edges);
-        	List<RenamedEdge<T, ContractedEdge<T, E>>> partitionEdges = new ArrayList<>();
-        	partition.edges.forEach(partitionEdges::add);
-            partitionMSFWithRenamedEdges.meld(decisionTrees.findMST(partition.vertices, partitionEdges));
+            Logger.logf("Parition subgraph: %s", partition.edges);
+            partitionMSFWithRenamedEdges.meld(decisionTrees.findMST(partition.vertices, partition.edges.collect(ArrayList::new)));
         }
 
         EdgeList<ContractedEdge<T, E>> partitionMSF = new EdgeList<>();
@@ -58,7 +52,6 @@ public final class PettieRamachandranMST {
         // with Fredman and Tarjan's algorithm in O(m) time
         Graph<ContractedEdge<T, ContractedEdge<T, E>>> contractedPartitions = Graphs.contract(vertices, partitionMSF, edges);
 
-//        System.out.println(wrapper.edges);
         // Remove corrupted Edges
         EdgeList<ContractedEdge<T, ContractedEdge<T, E>>> denseCaseEdges = new EdgeList<>();
         for (ContractedEdge<T, ContractedEdge<T, E>> e : contractedPartitions.edges) {
@@ -66,7 +59,8 @@ public final class PettieRamachandranMST {
                 denseCaseEdges.append(e);
             }
         }
-//        System.out.println(denseCaseEdges);
+
+        Logger.logf("Dense case edges: %s", denseCaseEdges);
         EdgeList<ContractedEdge<T, ContractedEdge<T, E>>> denseCaseMST = FredmanTarjanMST.compute(contractedPartitions.vertices, denseCaseEdges);
 
         EdgeList<ContractedEdge<T, E>> reducedEdges = new EdgeList<>();
@@ -98,15 +92,17 @@ public final class PettieRamachandranMST {
     }
     
     private static double log2(double x) {
-    	return Math.log(x) / Math.ceil(2);
+    	return Math.log(x) / Math.log(2);
     }
 
     private static <T, E extends DirectedEdge<T, E> & Comparable<? super E>>
             PartitionWrapper<T, E> partition(AdjacencyList<ContractedEdge<T, E>> edges, int maxsize, double errorRate) {
+
         boolean[] dead = new boolean[edges.size()];
         for (int i = 0; i < dead.length; ++i) {
         	dead[i] = false;
         }
+
         Set<ContractedEdge<T, E>> corruptedEdges = new HashSet<>();
         List<Graph<RenamedEdge<T, ContractedEdge<T, E>>>> partitions = new ArrayList<>();
         // For each vertex find a partition that they are part of
@@ -114,7 +110,8 @@ public final class PettieRamachandranMST {
         for (int current = 0; current < edges.size(); ++current) {
             if (dead[current])
                 continue;
-//            System.out.println("Growing partition for vertex " + current);
+
+            Logger.logf("Growing partition for vertex %s", current);
             dead[current] = true;
             SoftPriorityQueue<ContractedEdge<T, E>> softHeap = SoftHeap.naturallyOrdered(errorRate);
             edges.get(current).forEach(softHeap::insert);
@@ -125,16 +122,16 @@ public final class PettieRamachandranMST {
             // Grow the current partition as long as it is smaller than
             // max size and doesn't contain a dead (visited) vertex
             while (currentPartition.size() < maxsize) {
-//            	System.out.println(currentPartition);
+            	Logger.logf("Current partition: %s", currentPartition);
                 ContractedEdge<T, E> minEdge = softHeap.pop();
-//                System.out.println(minEdge);
+                Logger.logf("min edge: %s", minEdge);
                 // Extract the minimum Edge leading to a Vertex 
                 // which is not part of the current partition
                 while (currentPartition.contains(minEdge.to())) {
                     // In case the edge doesn't lead to a new vertex
                     // it is part of the subgraph induced by the 
                     // current partition
-//                	System.out.println("Adding " + minEdge + " to partitionEdges.");
+                 	Logger.logf("Adding %s to partitionEdges.", minEdge);
                     partitionEdges.append(minEdge);
                     minEdge = softHeap.pop();
                 }
@@ -160,7 +157,7 @@ public final class PettieRamachandranMST {
                 		corruptedEdges.add(minEdge);
                 	}
                 } else {
-//                	System.out.println("Adding " + minEdge + " to partitionEdges.");
+                    Logger.logf("Adding %s to partitionEdges.", minEdge);
                     partitionEdges.append(minEdge);
                 }
             }
@@ -179,5 +176,4 @@ public final class PettieRamachandranMST {
             this.corruptedEdges = corruptedEdges;
         }
     }
-
 }

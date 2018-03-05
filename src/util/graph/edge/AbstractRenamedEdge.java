@@ -2,7 +2,7 @@ package util.graph.edge;
 
 import java.util.Objects;
 
-abstract class AbstractRenamedEdge<T, E extends DirectedEdge<T, E>, R extends DirectedEdge<T, R>> implements DirectedEdge<T, R> {
+abstract class AbstractRenamedEdge<T, E extends DirectedEdge<T, E> & Comparable<? super E>, R extends AbstractRenamedEdge<T, E, R>> implements DirectedEdge<T, R>, Comparable<R> {
     protected final int from;
     protected final int to;
     public final E original;
@@ -48,5 +48,11 @@ abstract class AbstractRenamedEdge<T, E extends DirectedEdge<T, E>, R extends Di
     @Override
     public int hashCode() {
         return Objects.hash(from, to, original);
+    }
+
+
+    @Override
+    public int compareTo(final R other) {
+        return original.compareTo(other.original);
     }
 }
