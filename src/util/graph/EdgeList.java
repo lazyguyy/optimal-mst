@@ -146,6 +146,18 @@ public final class EdgeList<E extends DirectedEdge<?, E>> implements Meldable<Ed
     }
 
     /**
+     * Transforms the elements of this {@link EdgeList} using the provided function.
+     * @param mapper the mapping function
+     * @param <T> the result type of the mapping function
+     * @return a new {@link EdgeList} containing the mapped elements of this {@link EdgeList}
+     */
+    public <T extends DirectedEdge<?, T>> EdgeList<T> map(Function<E, T> mapper) {
+        EdgeList<T> mapped = new EdgeList<>();
+        stream().map(mapper).forEach(mapped::append);
+        return mapped;
+    }
+
+    /**
      * Returns a string representation of this {@link EdgeList}.
      * @return a string representation of this {@link EdgeList}.
      */

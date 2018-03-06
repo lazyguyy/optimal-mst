@@ -45,16 +45,17 @@ public class Launcher {
                 algs.add(algorithms.get(s));
                 continue;
             }
-            if ("log".equals(s)) {
-                Logger.setActive(true);
-                continue;
+            switch (s) {
+                case "log":
+                    Logger.setActive(true);
+                    break;
+                case "show":
+                    show = true;
+                    break;
+                default:
+                    printUsage();
+                    return;
             }
-            if ("show".equals(s)) {
-                show = true;
-                continue;
-            }
-            printUsage();
-            return;
         }
 
         int vertices = 0;
