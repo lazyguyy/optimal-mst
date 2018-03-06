@@ -27,7 +27,7 @@ public final class Graphs {
     }
 
     /**
-     * Creates an array represnting a connected component mapping. The i-th entry is the index of the connected component
+     * Creates an array representing a connected component mapping. The i-th entry is the index of the connected component
      * which the i-th vertex is part of
      * @param vertices the number of vertices in the graph
      * @param components a {@link List} of {@link List} of {@link Integer} where the i-th {@link List} contains the indices of all

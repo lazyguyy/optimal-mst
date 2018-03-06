@@ -2,6 +2,19 @@ package util.queue;
 
 import java.util.*;
 
+/**
+ * 
+ * The soft heap, first described by Chazelle, is an approximate data structure similar to a priority queue.
+ * It achieves a constant runtime on all operations but insert. The runtime of insert is in O(log(1/e)), where
+ * e is the error rate of the soft heap. <br>
+ * Soft heaps achieve this runtime by grouping elements together and associating all elements in the same group with the same key.
+ * Thus, the depth of the binary heaps that build the core of this data structure is drastically reduced. This grouping
+ * of elements leads to a loss of precision.<br>
+ * This class doesn't contain an implementation of the soft heap as Chazelle devised it, but an easier version
+ * described by Kaplan and Zwick
+ * @see SoftPriorityQueue
+ * @param <T> the type of element to be stored in the soft heap
+ */
 public class SoftHeap<T> implements SoftPriorityQueue<T>, Meldable<SoftHeap<T>> {
 
     private final double errorRate;
@@ -12,7 +25,13 @@ public class SoftHeap<T> implements SoftPriorityQueue<T>, Meldable<SoftHeap<T>> 
     private int size;
     private int rank;
 
-    
+    /**
+     * Constructs a new soft heap with the given error rate containing the specified element.
+     * @param errorRate the error rate of the soft heap
+     * @param comparator used to compare the elements of the soft heap. If T implements
+     * Comparable, you might also use {@link #naturallyOrdered}
+     * @param element the element that the SoftHeap should be initialized with
+     */
     public SoftHeap(double errorRate, Comparator<? super T> comparator, T element) {
         this(errorRate, comparator);
         queue = new BinaryHeap();
@@ -23,6 +42,12 @@ public class SoftHeap<T> implements SoftPriorityQueue<T>, Meldable<SoftHeap<T>> 
         corruptedElements = new HashSet<>();
     }
 
+    /**
+     * Constructs an empty soft heap with the given error rate.
+     * @param errorRate the error rate of the soft heap
+     * @param comparator used to compare the elements of the soft heap. If T implements
+     * Comparable, you might also use {@link #naturallyOrdered}
+     */
     public SoftHeap(double errorRate, Comparator<? super T> comparator) {
         this.errorRate = errorRate;
         // Cause Java doesn't support computing the logarithm to an arbitrary base...
@@ -31,6 +56,12 @@ public class SoftHeap<T> implements SoftPriorityQueue<T>, Meldable<SoftHeap<T>> 
 
     }
 
+    /**
+     * Creates a new soft heap on the basis of the comparable type argument and the given error rate.
+     * @param <S> the type of element to be stored in the soft heap
+     * @param errorRate the error rate of the soft heap
+     * @return an empty soft heap with the given error rate
+     */
     public static <S extends Comparable<? super S>> SoftHeap<S> naturallyOrdered(double errorRate) {
         return new SoftHeap<>(errorRate, S::compareTo);
     }
@@ -226,6 +257,10 @@ public class SoftHeap<T> implements SoftPriorityQueue<T>, Meldable<SoftHeap<T>> 
     	return sb.toString();
     }
 
+    /**
+     * 
+     * Represents a binary heap in the queue of binary heaps that the soft heap consists of
+     */
     protected class BinaryHeap {
         BinaryHeapNode root;
         BinaryHeap next, prev;
