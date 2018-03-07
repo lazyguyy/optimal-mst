@@ -105,8 +105,8 @@ public final class PettieRamachandranMST {
 
         Set<ContractedEdge<T, E>> corruptedEdges = new HashSet<>();
         List<Graph<RenamedEdge<T, ContractedEdge<T, E>>>> partitions = new ArrayList<>();
+
         // For each vertex find a partition that they are part of
-        
         for (int current = 0; current < edges.size(); ++current) {
             if (dead[current])
                 continue;
