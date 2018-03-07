@@ -13,12 +13,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * 
- * This class represents decision trees that can calculate the mst of graphs of a given size in the optimal number of comparisons.
- * It is used in the mst algorithm of pettie & ramachandran to calculate the optimal mst of the partitions of size log log log n 
- * in optimal time.<br>
- * Finding the optimal decision tree is very space- and time-consuming, so use this at your own risk.
- * 
+ * Represents a decision tree that can compute the MST of graphs up to a given size using an optimal number of comparisons.
  */
 public final class PrecomputedMSTCollection implements Serializable {
 
@@ -43,7 +38,7 @@ public final class PrecomputedMSTCollection implements Serializable {
 
     /**
      * Computes all optimal mst decision trees for graphs with up to maxVertices vertices
-     * @param maxVertices the number of vertices that a graph of which we want to compute the mst in the optimal number of 
+     * @param maxVertices the number of vertices that a graph of which we want to compute the mst in the optimal number of
      * comparisons may have
      * @return an object of this class that contains all the decision trees
      */
@@ -87,14 +82,14 @@ public final class PrecomputedMSTCollection implements Serializable {
                         for (List<Integer> permutation : Iterators.indexPermutations(edges.size())) {
                             int bucket = tree.classify(permutation);
                             // calculate mst indices here
-                            
+
                             List<IndexedEdge<Integer, WeightedEdge<Integer>>> permutedEdges = new ArrayList<>();
                             // Create graph with permuted edge weights
                             for (int index = 0; index < edges.size(); ++index) {
                             	permutedEdges.add(new IndexedEdge<>(index,
                                         edges.get(index).reweighted(permutation.get(index))));
                             }
-                            
+
                             EdgeList<IndexedEdge<Integer, WeightedEdge<Integer>>> mst = KruskalMST.compute(vertices, permutedEdges);
 
                             List<Integer> edgeIndices = new ArrayList<>();
@@ -102,7 +97,7 @@ public final class PrecomputedMSTCollection implements Serializable {
                             	edgeIndices.add(edge.index);
                             }
                             Collections.sort(edgeIndices);
-                            
+
                             if (mstIndices.containsKey(bucket)) {
                                 // compare calculated indices with stored ones
                                 List<Integer> otherIndices = mstIndices.get(bucket);
@@ -143,7 +138,7 @@ public final class PrecomputedMSTCollection implements Serializable {
         // short-circuit for trivial cases
         if (vertices < 2)
             return new EdgeList<>();
-        
+
         if (edges.size() <= 1)
         	return new EdgeList<>(edges);
 

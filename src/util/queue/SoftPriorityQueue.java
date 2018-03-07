@@ -3,7 +3,7 @@ package util.queue;
 import java.util.Collection;
 
 /**
- * 
+ *
  * A soft priority queue is a type of priority queue which is allowed to make mistakes.
  * Unlike "normal" priority queues, soft priority queues may associate elements with
  * a different key once they are inserted. Because of these so called corrupted elements,
@@ -14,13 +14,13 @@ public interface SoftPriorityQueue<T> {
 	/**
 	 * Peeks into the top of the queue, returning the element which is believed to have
 	 * minimal key. Does not remove the item from the queue.
-	 * @return The item with the minimal key
+	 * @return the item with the minimal key
 	 */
     T peek();
     /**
      * Peeks into the top of the queue, returning the element which is believed to have
      * minimal key. The item will get removed from the queue in the process.
-     * @return
+     * @return the item with the minimal key
      */
     T pop();
     /**
@@ -41,7 +41,7 @@ public interface SoftPriorityQueue<T> {
     int size();
     /**
      * Returns whether the queue is empty.
-     * @return whether the queue is empty
+     * @return true if the queue is empty
      */
     default boolean empty() {
         return size() == 0;

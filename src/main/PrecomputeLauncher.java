@@ -11,7 +11,7 @@ import java.util.zip.GZIPOutputStream;
 public class PrecomputeLauncher {
 
     public static void main(String[] args) {
-        
+
         String fileName = "precomputed-msts";
         int maxVertices;
 

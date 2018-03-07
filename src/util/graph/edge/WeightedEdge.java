@@ -3,8 +3,7 @@ package util.graph.edge;
 import java.util.Objects;
 
 /**
- * 
- * Most basic implementation of the {@ink DirectedEdge} interface.
+ * Represents a weighted edge.
  * @param <T> the weight type of this edge.
  */
 public final class WeightedEdge<T extends Comparable<? super T>> implements DirectedEdge<T, WeightedEdge<T>>, Comparable<WeightedEdge<T>> {
