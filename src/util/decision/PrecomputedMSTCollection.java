@@ -132,7 +132,7 @@ public final class PrecomputedMSTCollection implements Serializable {
     }
 
     public <T, E extends DirectedEdge<T, E> & Comparable<? super E>> EdgeList<E> findMST(int vertices, List<E> edges) {
-        if (vertices >= maxVertices)
+        if (vertices > maxVertices)
             throw new IllegalArgumentException("No precomputed solutions exist for graph size " + vertices + ".");
 
         // short-circuit for trivial cases
