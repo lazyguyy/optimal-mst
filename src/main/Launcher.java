@@ -27,7 +27,7 @@ public class Launcher {
 
     private static void printUsage() {
         String algs = String.join(" | ", algorithms.keySet());
-        System.err.printf("Allowed arguments: %s\n", algs);
+        System.err.printf("Allowed arguments: %s | log | show\n", algs);
     }
 
     public static void main(String[] args) {
@@ -48,14 +48,13 @@ public class Launcher {
             switch (s) {
                 case "log":
                     Logger.setActive(true);
-                    break;
+                    continue;
                 case "show":
                     show = true;
-                    break;
-                default:
-                    printUsage();
-                    return;
+                    continue;
             }
+            printUsage();
+            return;
         }
 
         int vertices = 0;
