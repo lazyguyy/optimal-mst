@@ -49,7 +49,7 @@ public final class PrecomputedMSTCollection implements Serializable {
      */
     public static PrecomputedMSTCollection computeUpTo(int maxVertices) {
 
-        Logger.logf("Computing decision trees for up to %s vertices.", maxVertices);
+        Logger.logf("Computing decision trees for graphs with up to %s vertices.", maxVertices);
 
         Map<Integer, Map<GraphStructure, GraphStructureMSTLookup>> lookups = new HashMap<>();
 
@@ -60,15 +60,23 @@ public final class PrecomputedMSTCollection implements Serializable {
             List<WeightedEdge<Integer>> possibleEdges = new ArrayList<>();
             Iterators.ascendingIntPairs(vertices, (i, j) -> new WeightedEdge<>(i, j, 0)).forEach(possibleEdges::add);
 
+            int counter = 0;
+            long max = 1L << possibleEdges.size();
+
             // generate every combination of edges
             edgecombinations:
             for (List<WeightedEdge<Integer>> edges : Iterators.powerSet(possibleEdges)) {
-            	if (edges.size() <= 1)
+                counter++;
+
+                if (edges.size() <= 1)
             		continue;
 
-            	Logger.logf("Generating decision trees for graphs with %s edges and %s vertices.", edges.size(), vertices);
+                Logger.logf("Generating decision tree for edge structure %s/%s (%s vertices, %s edges total).",
+                        counter, max, vertices, edges.size());
+
                 // iterate over all decision tree depths
                 for (int depth = 0; depth < vertices * vertices; depth++) {
+                    Logger.logf("  Currently exploring depth: %s", depth);
 
                     decisiontrees:
                     // iterate over all decision trees
@@ -121,6 +129,7 @@ public final class PrecomputedMSTCollection implements Serializable {
                         continue edgecombinations;
                     }
                 }
+                // this should never happen
                 throw new RuntimeException("No MST found!");
             }
         }
@@ -151,7 +160,9 @@ public final class PrecomputedMSTCollection implements Serializable {
     // hashable in O(1) due to precomputation
     // comparable in O(m) because edges are sorted
     // can be used as key in a HashMap for lookup in expected time O(c * m) = O(m)
-    private static final class GraphStructure {
+    private static final class GraphStructure implements Serializable {
+        private static final long serialVersionUID = 1L;
+
         private final int[] froms;
         private final int[] tos;
         private final int hash;
