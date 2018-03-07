@@ -1,8 +1,9 @@
 import random
 
 # Takes a number of vertices and a floating point number between 0 and 1
-# And generates a graph that has that many vertices and an edge between
-# and two given vertices with the given probability
+# and generates a weighted graph with distinct weights that has that many vertices and an edge between
+# any two given vertices with the given probability
+# 
 
 vertices = int(input())
 edge_prob = float(input())
