@@ -12,6 +12,14 @@ import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * 
+ * This class represents decision trees that can calculate the mst of graphs of a given size in the optimal number of comparisons.
+ * It is used in the mst algorithm of pettie & ramachandran to calculate the optimal mst of the partitions of size log log log n 
+ * in optimal time.<br>
+ * Finding the optimal decision tree is very space- and time-consuming, so use this at your own risk.
+ * 
+ */
 public final class PrecomputedMSTCollection implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -25,10 +33,20 @@ public final class PrecomputedMSTCollection implements Serializable {
         this.maxVertices = maxVertices;
     }
 
+    /**
+     * Returns the max number of vertices of a graph up to which the optimal mst decision trees have been computed.
+     * @return the max number of vertices of a graph up to which the optimal mst decision trees have been computed
+     */
     public int getMaxVertices() {
         return maxVertices;
     }
 
+    /**
+     * Computes all optimal mst decision trees for graphs with up to maxVertices vertices
+     * @param maxVertices the number of vertices that a graph of which we want to compute the mst in the optimal number of 
+     * comparisons may have
+     * @return an object of this class that contains all the decision trees
+     */
     public static PrecomputedMSTCollection computeUpTo(int maxVertices) {
 
         Logger.logf("Computing decision trees for up to %s vertices.", maxVertices);

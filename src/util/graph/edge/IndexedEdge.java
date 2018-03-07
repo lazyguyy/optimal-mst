@@ -2,10 +2,22 @@ package util.graph.edge;
 
 import java.util.Objects;
 
+/**
+ * 
+ * A special type of edge that is associated with an index. This is used in the creation of the optimal decision trees
+ * as seen in {@link util.decision.PrecomputedMSTCollection}
+ * @param <T> the weight type of this edge
+ * @param <E> the edge type of the edge that this edge references
+ */
 public final class IndexedEdge<T, E extends DirectedEdge<T, E> & Comparable<? super E>> implements DirectedEdge<T, IndexedEdge<T, E>>, Comparable<IndexedEdge<T, E>> {
 	public final int index;
 	public final E edge;
 
+	/**
+	 * Creates a new indexed edge with the given index, referencing the given edge
+	 * @param index the index of this edge
+	 * @param edge the edge this edge references
+	 */
 	public IndexedEdge(int index, E edge) {
 		this.index = index;
 		this.edge = edge;
