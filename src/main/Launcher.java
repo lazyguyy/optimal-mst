@@ -37,8 +37,6 @@ public class Launcher {
         boolean show = false;
 
         List<MinimumSpanningTreeAlgorithm<WeightedEdge<Double>>> algs = new ArrayList<>();
-        if (args.length == 0)
-            algs.add(PettieRamachandranMST::compute);
 
         for (String s : args) {
             if (algorithms.containsKey(s)) {
@@ -56,6 +54,9 @@ public class Launcher {
             printUsage();
             return;
         }
+
+        if (algs.size() == 0)
+            algs.add(PettieRamachandranMST::compute);
 
         int vertices = 0;
         EdgeList<WeightedEdge<Double>> edges = new EdgeList<>();
