@@ -8,7 +8,7 @@ public interface DisjointSet {
      * Returns the number of distinct sets.
      * @return the number of distinct sets
      */
-    int count();
+    int distinct();
     /**
      * Returns the number of elements.
      * @return the number of elements
