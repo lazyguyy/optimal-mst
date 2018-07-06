@@ -1,6 +1,6 @@
 # optimal-mst
 
-In 2002, Seth Pettie and Vijaya Ramachandran described a <a href="https://web.eecs.umich.edu/~pettie/papers/jacm-optmsf.pdf">MST algorithm</a> based
+In 2002, Seth Pettie and Vijaya Ramachandran described an <a href="https://web.eecs.umich.edu/~pettie/papers/jacm-optmsf.pdf">MST algorithm</a> based
 on the complexity of decision trees. We did not manage to find an actual
 implementation of the algorithm, so this might be the first one.
 
